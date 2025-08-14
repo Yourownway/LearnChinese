@@ -1,29 +1,26 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "react-native";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
+  const scheme = useColorScheme();
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+    <>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: scheme === "dark" ? "#111" : "#fff" },
+          headerTitleStyle: { fontWeight: "600" },
+          headerTintColor: scheme === "dark" ? "#fff" : "#111",
+          contentStyle: { backgroundColor: scheme === "dark" ? "#000" : "#fafafa" },
+        }}
+      >
+        <Stack.Screen name="index" options={{ title: "Réviser le chinois" }} />
+        {/* Le module 1 a un écran dédié (jeu) */}
+        <Stack.Screen name="module/1/index" options={{ title: "Module 1 — Jeu" }} />
+        {/* Les autres modules passent par l’écran placeholder */}
+        <Stack.Screen name="module/[id]" options={{ title: "Module" }} />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    </>
   );
 }
