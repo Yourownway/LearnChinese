@@ -1,0 +1,84 @@
+[
+  {
+    "id": "1",
+    "series": 1,
+    "hanzi": "你",
+    "pinyin": "nǐ",
+    "numeric": "ni3",
+    "fr": "tu",
+    "audioUrl": "https://cdn.exemple.com/audio/ni3.mp3"
+  },
+  {
+    "id": "2",
+    "series": 1,
+    "hanzi": "好",
+    "pinyin": "hǎo",
+    "numeric": "hao3",
+    "fr": "bien",
+    "audioUrl": "https://cdn.exemple.com/audio/hao3.mp3"
+  },
+  {
+    "id": "3",
+    "series": 1,
+    "hanzi": "我",
+    "pinyin": "wǒ",
+    "numeric": "wo3",
+    "fr": "je"
+  },
+  {
+    "id": "4",
+    "series": 2,
+    "hanzi": "爱",
+    "pinyin": "ài",
+    "numeric": "ai4",
+    "fr": "aimer"
+  },
+  {
+    "id": "5",
+    "series": 2,
+    "hanzi": "人",
+    "pinyin": "rén",
+    "numeric": "ren2",
+    "fr": "personne"
+  },
+  {
+    "id": "6",
+    "series": 2,
+    "hanzi": "中",
+    "pinyin": "zhōng",
+    "numeric": "zhong1",
+    "fr": "milieu"
+  },
+  {
+    "id": "7",
+    "series": 2,
+    "hanzi": "国",
+    "pinyin": "guó",
+    "numeric": "guo2",
+    "fr": "pays"
+  },
+  {
+    "id": "8",
+    "series": 3,
+    "hanzi": "学",
+    "pinyin": "xué",
+    "numeric": "xue2",
+    "fr": "apprendre"
+  },
+  {
+    "id": "9",
+    "series": 3,
+    "hanzi": "语",
+    "pinyin": "yǔ",
+    "numeric": "yu3",
+    "fr": "langue"
+  },
+  {
+    "id": "10",
+    "series": 3,
+    "hanzi": "谢",
+    "pinyin": "xiè",
+    "numeric": "xie4",
+    "fr": "remercier"
+  }
+]

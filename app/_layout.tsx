@@ -16,9 +16,8 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ title: "Réviser le chinois" }} />
-        {/* Le module 1 a un écran dédié (jeu) */}
+        <Stack.Screen name="module/1/settings" options={{ title: "Module 1 — Paramètres" }} />
         <Stack.Screen name="module/1/index" options={{ title: "Module 1 — Jeu" }} />
-        {/* Les autres modules passent par l’écran placeholder */}
         <Stack.Screen name="module/[id]" options={{ title: "Module" }} />
       </Stack>
     </>

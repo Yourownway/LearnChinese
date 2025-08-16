@@ -12,9 +12,9 @@ export default function HomeScreen() {
         keyExtractor={(n) => String(n)}
         contentContainerStyle={{ gap: 12 }}
         renderItem={({ item }) => (
-          <Link href={item === 1 ? "/module/1" : `/module/${item}`} asChild>
+          <Link href={item === 1 ? "/module/1/settings" : `/module/${item}`} asChild>
             <Pressable style={styles.button}>
-              <Text style={styles.buttonText}>Bouton {item} → /module/{item}</Text>
+              <Text style={styles.buttonText}>Bouton {item} → /module/{item === 1 ? "1/settings" : item}</Text>
             </Pressable>
           </Link>
         )}
@@ -24,27 +24,8 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    gap: 16,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  button: {
-    backgroundColor: "#111",
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  container: { flex: 1, padding: 20, gap: 16, justifyContent: "center" },
+  title: { fontSize: 24, fontWeight: "700", textAlign: "center", marginBottom: 8 },
+  button: { backgroundColor: "#111", paddingVertical: 16, borderRadius: 12 },
+  buttonText: { color: "#fff", textAlign: "center", fontSize: 16, fontWeight: "600" },
 });
