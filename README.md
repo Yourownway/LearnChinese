@@ -1,50 +1,104 @@
-# Welcome to your Expo app 👋
+📚 User Stories — Chinese Revision App
+🥋 Module 1 — Revision Game
+0) Data Model & Loading
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+As a developer, I want the local JSON to include a series field (number) so I can group characters by word list for exercises.
 
-## Get started
+{
+  "id": "1",
+  "series": 1,
+  "hanzi": "你",
+  "pinyin": "nǐ",
+  "numeric": "ni3",
+  "fr": "tu",
+  "audioUrl": "https://cdn.example.com/audio/ni3.mp3"
+}
 
-1. Install dependencies
 
-   ```bash
-   npm install
-   ```
+Local-first loading from constants/words.json
 
-2. Start the app
+API fetch + cache ready for future use
 
-   ```bash
-   npx expo start
-   ```
+1) Settings Page (/module/1/settings)
 
-In the output, you'll find options to open the app in a
+As a user, I want to configure my game before starting:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Select series → choose one, multiple, or all characters
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Set maxQuestions → fixed number or unlimited
 
-## Get a fresh project
+Toggle noRepeatHintType → prevent same hintType (汉字 / pinyin / FR) twice in a row
 
-When you're ready, run:
+Start button → launches the game with selected settings
 
-```bash
-npm run reset-project
-```
+2) Question Generator
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+As a user, I want:
 
-## Learn more
+Characters shuffled (shuffledCharacters) so question order is random
 
-To learn more about developing your project with Expo, look at the following resources:
+5 choices per question (choices array), all pulled from filtered characters (1 correct + 4 distractors)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Random hintType per question, respecting noRepeatHintType if enabled
 
-## Join the community
+3) Gameplay — Hints & Errors
 
-Join our community of developers creating universal apps.
+As a user, I want progressive hints (“pistes”) when I’m stuck:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Button Hint → reveal next letter (pinyin accented or FR translation)
+
+Max 3 hints → auto reveal answer (revealAnswer())
+
+Score impact: –1 per hint; if 3 hints → 0 points for the question
+
+If errorCount reaches 3 → reveal answer (score 0)
+
+4) Scoring & History
+
+As a user, I want:
+
+Scoring: +5 base, –1 per error, –1 per hint, 0 if revealed (by hints or errors)
+
+History saved in AsyncStorage:
+
+Selected series or "custom"
+
+Total score
+
+Date
+
+Per-character stats (errors, hints used)
+
+Restart Game button → same settings, reset everything
+
+5) Audio & Offline
+
+As a user, I want to hear pronunciation:
+
+If audioUrl:
+
+Play with expo-audio
+
+Store in audioCacheLRU (max 5 files, oldest removed first)
+
+Button disabled if no cache & no network
+
+Else: Play via TTS (expo-speech)
+
+Always offline-first: load from local JSON; API fetch optional later
+
+🪄 Module 2 — (to be defined)
+
+(Reserved space for future User Stories)
+
+🎯 Extra Dev Notes
+
+Code terms: hint, hintCount, maxHints, errorCount, score, selectedSeries, maxQuestions, noRepeatHintType, shuffledCharacters, choices, audioCacheLRU, playAudio(), playTTS()
+
+UI text in French, code in English
+
+AsyncStorage used for cache & history
+
+LRU logic in separate utility (lib/lruCache.ts)
+
+Data & audio loading in lib/data.ts and lib/audio.ts
