@@ -1,6 +1,10 @@
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { FauxTextarea } from "../../../components/FauxTextarea";
+import { useToast } from "../../../components/Toast";
+import { ZenButton } from "../../../components/ZenButton";
+import { useTheme } from "../../../hooks/useTheme";
 import { canPlayRemoteAudio, getPlayableAudioSource, playAudioFileOrTTS } from "../../../lib/audio";
 import { loadWordsLocalOnly, type Word } from "../../../lib/data";
 import { isPinyinAnswerCorrect } from "../../../lib/pinyin";
@@ -16,6 +20,8 @@ type GameParams = {
 
 export default function Module1Game() {
   const params = useLocalSearchParams<GameParams>();
+  const { colors, tx } = useTheme();
+  const toast = useToast();
 
   const [words, setWords] = useState<Word[]>([]);
   const [filtered, setFiltered] = useState<Word[]>([]);
@@ -34,10 +40,10 @@ export default function Module1Game() {
 
   // per-question
   const [hintType, setHintType] = useState<HintMode>("hanzi");
-  const lastHintTypeRef = useRef<HintMode | null>(null); // avoid re-render loops
+  const lastHintTypeRef = useRef<HintMode | null>(null);
   const [choices, setChoices] = useState<Word[]>([]);
   const [errorCount, setErrorCount] = useState(0);
-  const [hintCount, setHintCount] = useState(0); // global per question (max 3, across FR+pinyin)
+  const [hintCount, setHintCount] = useState(0); // global per question (max 3)
   const [revealed, setRevealed] = useState(false);
   const [questionDone, setQuestionDone] = useState(false);
   const [wasCorrect, setWasCorrect] = useState<boolean | null>(null);
@@ -81,15 +87,38 @@ export default function Module1Game() {
       .catch(() => Alert.alert("Erreur", "Impossible de charger les mots."));
   }, [params.series]);
 
+  // Build pinyin index ONCE per filtered change (O(N))
+  const pinyinIndex = useMemo(() => {
+    const m = new Map<string, Set<string>>();
+    for (const w of filtered) {
+      const keys = [w.pinyin, (w.numeric || "").toLowerCase()].filter(Boolean);
+      for (const k of keys) {
+        if (!m.has(k)) m.set(k, new Set());
+        m.get(k)!.add(w.id);
+      }
+    }
+    return m;
+  }, [filtered]);
+
   // current word
   const current = useMemo(() => {
     return shuffledCharacters[currentIndex % Math.max(1, shuffledCharacters.length)];
   }, [shuffledCharacters, currentIndex]);
 
+  // Accepted IDs for homophones from index (O(1) lookup)
+  const acceptedIds = useMemo(() => {
+    if (!current) return new Set<string>();
+    const set = new Set<string>();
+    const k1 = current.pinyin;
+    const k2 = (current.numeric || "").toLowerCase();
+    pinyinIndex.get(k1)?.forEach(id => set.add(id));
+    if (k2) pinyinIndex.get(k2)?.forEach(id => set.add(id));
+    return set;
+  }, [current, pinyinIndex]);
+
   // init question on current change
   useEffect(() => {
     if (!current) return;
-
     // pick hint type from allowed (respect noRepeat)
     let nextHint: HintMode = pickRandom<HintMode>(allowedTypes);
     if (noRepeatHintType && lastHintTypeRef.current) {
@@ -120,14 +149,21 @@ export default function Module1Game() {
     setRevealed(true);
     setQuestionDone(true);
     setWasCorrect(false);
-    // Show full solution in fake textareas
     setHintedFR(current.fr);
     setHintedPinyin(current.pinyin);
+
+    const hanziSolutions =
+      Array.from(acceptedIds)
+        .map(id => filtered.find(w => w.id === id)?.hanzi || choices.find(w => w.id === id)?.hanzi || "")
+        .filter(Boolean)
+        .join(" / ") || current.hanzi;
+
     const msg =
       reason === "3hints"
-        ? `Solution révélée (3 pistes) — 汉字: ${current.hanzi} · Pinyin: ${current.pinyin} · FR: ${current.fr}`
-        : `Solution révélée (3 erreurs) — 汉字: ${current.hanzi} · Pinyin: ${current.pinyin} · FR: ${current.fr}`;
+        ? `Solution révélée (3 pistes) — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${current.fr}`
+        : `Solution révélée (3 erreurs) — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${current.fr}`;
     setFeedback(f => [...f, "Dommage !", msg]);
+    toast.show("Dommage…", "error");
   }
 
   function addHintFR() {
@@ -184,14 +220,15 @@ export default function Module1Game() {
     }
 
     if (hintType === "pinyin") {
-      // Expect FR + choice hanzi
+      // Expect FR + choice hanzi (accept multi homophones)
       const frOK = inputFR.trim().toLowerCase() === current.fr.toLowerCase();
       if (!frOK) { correct = false; messages.push(`Traduction attendue : "${current.fr}"`); }
-      if (selectedId !== current.id) { correct = false; messages.push("Mauvais caractère choisi."); }
+      const isAccepted = selectedId != null && acceptedIds.has(selectedId);
+      if (!isAccepted) { correct = false; messages.push("Mauvais caractère choisi."); }
     }
 
     if (hintType === "translation") {
-      // Expect pinyin + choice hanzi
+      // Expect pinyin + choice hanzi (accept multi homophones)
       const { ok: pinOK, accentWarning, missingTones, corrected } =
         isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
       if (!pinOK) {
@@ -201,7 +238,8 @@ export default function Module1Game() {
       } else if (accentWarning) {
         messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
       }
-      if (selectedId !== current.id) { correct = false; messages.push("Mauvais caractère choisi."); }
+      const isAccepted = selectedId != null && acceptedIds.has(selectedId);
+      if (!isAccepted) { correct = false; messages.push("Mauvais caractère choisi."); }
     }
 
     // scoring
@@ -224,10 +262,19 @@ export default function Module1Game() {
     setHintedFR(current.fr);
     setHintedPinyin(current.pinyin);
 
-    // Feedback lines + Bravo/Dommage + solution
+    // Feedback lines + Bravo/Dommage + solution (list all accepted hanzi if multiple)
     const header = correct && !revealed ? "Bravo !" : "Dommage !";
-    const solutionLine = `Solution — 汉字: ${current.hanzi} · Pinyin: ${current.pinyin} · FR: ${current.fr}`;
+    const hanziSolutions =
+      Array.from(acceptedIds)
+        .map(id => filtered.find(w => w.id === id)?.hanzi || choices.find(w => w.id === id)?.hanzi || "")
+        .filter(Boolean)
+        .join(" / ") || current.hanzi;
+
+    const solutionLine = `Solution — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${current.fr}`;
     setFeedback([header, ...messages, solutionLine]);
+
+    // Toast
+    toast.show(correct && !revealed ? "Bravo !" : "Dommage…", correct ? "success" : "error");
   }
 
   function goNext() {
@@ -277,47 +324,127 @@ export default function Module1Game() {
   const showHintPinyin = hintType === "hanzi" || hintType === "translation";
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={{ padding: 20, gap: 16 }}
+    >
       {/* Header / hint type */}
       <View style={{ alignItems: "center", gap: 8 }}>
-        <Text style={styles.badge}>Indice : {hintLabel}</Text>
-        <Text style={hintType === "hanzi" ? styles.hintHanzi : styles.hintText}>{hintText}</Text>
+        <Text
+          style={{
+            fontSize: tx(12),
+            color: colors.muted,
+            backgroundColor: colors.card,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 999,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
+          Indice : {hintLabel}
+        </Text>
+        <Text
+          style={{
+            fontSize: hintType === "hanzi" ? tx(64) : tx(28),
+            fontWeight: "800",
+            color: colors.text,
+          }}
+        >
+          {hintText}
+        </Text>
 
-        <Pressable onPress={onPressAudio} disabled={audioDisabled} style={[styles.audioBtn, audioDisabled && { opacity: 0.4 }]}>
-          <Text style={styles.audioLabel}>🔊 Écouter</Text>
+        <Pressable
+          onPress={onPressAudio}
+          disabled={audioDisabled}
+          style={[
+            {
+              marginTop: 8,
+              backgroundColor: colors.card,
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: colors.border,
+            },
+            audioDisabled && { opacity: 0.4 },
+          ]}
+        >
+          <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
         </Pressable>
 
-        <Text style={styles.score}>Score: {score}</Text>
+        <Text style={{ marginTop: 8, fontWeight: "700", color: colors.text }}>
+          Score: {score}
+        </Text>
       </View>
 
-      {/* FR block (fake textarea + input) */}
+      {/* FR block (FauxTextarea + input) */}
       {(hintType === "hanzi" || hintType === "pinyin") && (
-        <View style={styles.card}>
-          <Text style={styles.label}>Traduction (FR)</Text>
-          {/* fake textarea shows hints or full solution when done */}
-          <View style={styles.fakeArea}><Text style={styles.fakeAreaText}>{hintedFR}</Text></View>
+        <View
+          style={{
+            backgroundColor: colors.card,
+            borderRadius: 16,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: colors.border,
+            gap: 6,
+          }}
+        >
+          <Text style={{ fontSize: tx(14), color: colors.muted }}>Traduction (FR)</Text>
+          <FauxTextarea value={hintedFR} disabled={questionDone || revealed} placeholder="—" />
           <TextInput
             value={inputFR}
             onChangeText={setInputFR}
-            style={styles.input}
+            style={{
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              fontSize: tx(16),
+              color: colors.text,
+              backgroundColor: colors.background,
+            }}
             placeholder="ex: bien"
+            placeholderTextColor={colors.muted}
             editable={!questionDone}
           />
         </View>
       )}
 
-      {/* Pinyin block (fake textarea + input) */}
+      {/* Pinyin block (FauxTextarea + input) */}
       {(hintType === "hanzi" || hintType === "translation") && (
-        <View style={styles.card}>
-          <Text style={styles.label}>Pinyin (accents obligatoires; numérique toléré)</Text>
-          <View style={styles.fakeArea}><Text style={styles.fakeAreaText}>{hintedPinyin}</Text></View>
+        <View
+          style={{
+            backgroundColor: colors.card,
+            borderRadius: 16,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: colors.border,
+            gap: 6,
+          }}
+        >
+          <Text style={{ fontSize: tx(14), color: colors.muted }}>
+            Pinyin (accents obligatoires; numérique toléré)
+          </Text>
+          <FauxTextarea value={hintedPinyin} disabled={questionDone || revealed} placeholder="—" />
           <TextInput
             value={inputPinyin}
             onChangeText={setInputPinyin}
             autoCapitalize="none"
             autoCorrect={false}
-            style={styles.input}
+            style={{
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              fontSize: tx(16),
+              color: colors.text,
+              backgroundColor: colors.background,
+            }}
             placeholder="ex: nǐ hǎo ou ni3 hao3"
+            placeholderTextColor={colors.muted}
             editable={!questionDone}
           />
         </View>
@@ -325,24 +452,46 @@ export default function Module1Game() {
 
       {/* Choice tiles */}
       {(hintType === "pinyin" || hintType === "translation") && (
-        <View style={styles.card}>
-          <Text style={[styles.label, { marginBottom: 8 }]}>Choisis le caractère</Text>
-          <View style={styles.grid}>
+        <View
+          style={{
+            backgroundColor: colors.card,
+            borderRadius: 16,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: colors.border,
+            gap: 6,
+          }}
+        >
+          <Text style={{ fontSize: tx(14), color: colors.muted, marginBottom: 8 }}>
+            Choisis le caractère
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             {choices.map((w) => {
-              const isCorrectTile = w.id === current.id;
-              const tileStyles = [
-                styles.tile,
-                selectedId === w.id && !questionDone && styles.tileSelected,
-                questionDone && isCorrectTile && styles.tileSolution,
-              ];
+              const selected = selectedId === w.id && !questionDone;
+              const isSolution = questionDone && acceptedIds.has(w.id); // highlight all accepted hanzi
+              const baseStyle = {
+                width: "30%" as const,
+                aspectRatio: 1,
+                borderRadius: 12,
+                borderWidth: selected ? 2 : 1,
+                borderColor: selected ? colors.text : colors.border,
+                alignItems: "center" as const,
+                justifyContent: "center" as const,
+                backgroundColor: colors.background,
+              };
+              const solutionStyle = isSolution
+                ? { borderColor: colors.accent, borderWidth: 3, backgroundColor: colors.background }
+                : null;
               return (
                 <Pressable
                   key={w.id}
                   onPress={() => !questionDone && setSelectedId(w.id)}
                   disabled={questionDone}
-                  style={tileStyles}
+                  style={[baseStyle, solutionStyle]}
                 >
-                  <Text style={styles.tileHanzi}>{w.hanzi}</Text>
+                  <Text style={{ fontSize: tx(36), fontWeight: "800", color: colors.text }}>
+                    {w.hanzi}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -352,37 +501,41 @@ export default function Module1Game() {
 
       {/* Actions */}
       {!questionDone ? (
-        <View style={styles.actions}>
-          <Pressable
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+          <ZenButton
+            title={`Hint Pinyin (${hintCount}/3)`}
             onPress={addHintPinyin}
             disabled={revealed || hintCount >= 3 || !showHintPinyin}
-            style={[styles.btn, (revealed || hintCount >= 3 || !showHintPinyin) && styles.btnDisabled]}
-          >
-            <Text style={styles.btnText}>Hint Pinyin ({hintCount}/3)</Text>
-          </Pressable>
-          <Pressable
+          />
+          <ZenButton
+            title={`Hint FR (${hintCount}/3)`}
             onPress={addHintFR}
             disabled={revealed || hintCount >= 3 || !showHintFR}
-            style={[styles.btn, (revealed || hintCount >= 3 || !showHintFR) && styles.btnDisabled]}
-          >
-            <Text style={styles.btnText}>Hint FR ({hintCount}/3)</Text>
-          </Pressable>
-          <Pressable onPress={validate} style={styles.btnPrimary}>
-            <Text style={styles.btnPrimaryText}>Valider</Text>
-          </Pressable>
+          />
+          <ZenButton title="Valider" onPress={validate} />
         </View>
       ) : (
-        <View style={styles.actions}>
-          <Pressable onPress={goNext} style={styles.btnPrimary}>
-            <Text style={styles.btnPrimaryText}>Question suivante</Text>
-          </Pressable>
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+          <ZenButton title="Question suivante" onPress={goNext} />
         </View>
       )}
 
       {feedback.length > 0 && (
-        <View style={styles.feedback}>
+        <View
+          style={{
+            marginTop: 10,
+            gap: 6,
+            backgroundColor: colors.card,
+            borderRadius: 12,
+            padding: 12,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
           {feedback.map((m, i) => (
-            <Text key={i} style={styles.feedbackText}>• {m}</Text>
+            <Text key={i} style={{ fontSize: tx(14), color: colors.text }}>
+              • {m}
+            </Text>
           ))}
         </View>
       )}
@@ -391,32 +544,3 @@ export default function Module1Game() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { padding: 20, gap: 16 },
-  badge: { fontSize: 12, color: "#666", backgroundColor: "#eee", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
-  hintText: { fontSize: 28, fontWeight: "700" },
-  hintHanzi: { fontSize: 64, fontWeight: "800" },
-  audioBtn: { marginTop: 8, backgroundColor: "#111", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
-  audioLabel: { color: "#fff", fontWeight: "600" },
-  score: { marginTop: 8, fontWeight: "700" },
-  card: { backgroundColor: "#fff", borderRadius: 16, padding: 16, elevation: 3, gap: 6 },
-  label: { fontSize: 14, color: "#444" },
-  // fake textarea
-  fakeArea: { borderWidth: 1, borderColor: "#eee", backgroundColor: "#fafafa", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, minHeight: 44, justifyContent: "center" },
-  fakeAreaText: { color: "#333", fontSize: 16 },
-  input: { borderWidth: 1, borderColor: "#ddd", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 8 },
-  tile: { width: "30%", aspectRatio: 1, borderRadius: 12, borderWidth: 2, borderColor: "#eee", alignItems: "center", justifyContent: "center", backgroundColor: "#f7f7f7" },
-  tileSelected: { borderColor: "#111" },
-  tileSolution: { borderColor: "#0a84ff", borderWidth: 3, backgroundColor: "#eef6ff" }, // outline correct character when done
-  tileHanzi: { fontSize: 36, fontWeight: "800" },
-  actions: { flexDirection: "row", gap: 8, marginTop: 8, alignItems: "stretch" },
-  btn: { backgroundColor: "#333", paddingVertical: 14, borderRadius: 12, alignItems: "center", flex: 1 },
-  btnDisabled: { opacity: 0.4 },
-  btnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-  btnPrimary: { backgroundColor: "#111", paddingVertical: 14, borderRadius: 12, alignItems: "center", flex: 1 },
-  btnPrimaryText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  feedback: { marginTop: 10, gap: 6, backgroundColor: "#f2f2f2", borderRadius: 12, padding: 12 },
-  feedbackText: { fontSize: 14 },
-});

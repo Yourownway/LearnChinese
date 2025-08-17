@@ -1,5 +1,7 @@
 [
-  { "id": "1", "series": 1, "hanzi": "好", "pinyin": "hǎo", "numeric": "hao3", "fr": "bien","audioUrl": "https://cdn.exemple.com/audio/hao3.mp3" },
+  // ajouter un audio manuelle avec audioUrl
+  // { "id": "1", "series": 1, "hanzi": "好", "pinyin": "hǎo", "numeric": "hao3", "fr": "bien","audioUrl": "https://cdn.exemple.com/audio/hao3.mp3" },
+  { "id": "1", "series": 1, "hanzi": "好", "pinyin": "hǎo", "numeric": "hao3", "fr": "bien"},
   { "id": "2", "series": 1, "hanzi": "见", "pinyin": "jiàn", "numeric": "jian4", "fr": "voir" },
   { "id": "3", "series": 1, "hanzi": "你", "pinyin": "nǐ", "numeric": "ni3", "fr": "toi" },
   { "id": "4", "series": 1, "hanzi": "我", "pinyin": "wǒ", "numeric": "wo3", "fr": "moi" },
