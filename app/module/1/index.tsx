@@ -13,7 +13,7 @@ import { ensureFiveChoices, pickRandom, shuffle } from "../../../lib/utils";
 type HintMode = "hanzi" | "pinyin" | "translation";
 type GameParams = {
   series?: string;              // "all" or "1,2,3"
-  maxQuestions?: string;        // "" = unlimited
+  maxQuestions?: string;        // nombre total de questions
   noRepeatHintType?: "0" | "1"; // from settings
   types?: string;               // "hanzi,pinyin,translation"
 };
@@ -42,7 +42,7 @@ export default function Module1Game() {
 
   const maxQuestions = useMemo(() => {
     const raw = params.maxQuestions ?? "";
-    const n = String(raw).trim() === "" ? null : Math.max(1, Math.min(200, Number(raw)));
+    const n = String(raw).trim() === "" ? null : Math.max(1, Number(raw));
     return n;
   }, [params.maxQuestions]);
 
