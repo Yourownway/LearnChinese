@@ -42,6 +42,7 @@ export default function Module1Game() {
   const [choices, setChoices] = useState<Word[]>([]);
   const [questionDone, setQuestionDone] = useState(false);
   const [feedback, setFeedback] = useState<string[]>([]);
+  const [showResult, setShowResult] = useState(false);
 
   const maxQuestions = useMemo(() => {
     const raw = params.maxQuestions ?? "";
@@ -129,6 +130,7 @@ export default function Module1Game() {
     setSelectedId(null);
     setQuestionDone(false);
     setFeedback([]);
+    setShowResult(false);
   }, [current, allowedTypes, noRepeatHintType, filtered]);
 
   // (no hints)
@@ -199,12 +201,15 @@ export default function Module1Game() {
 
     const solutionLine = `Solution — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${current.fr}`;
     setFeedback([header, ...messages, solutionLine]);
+    setShowResult(true);
 
     // Toast
     toast.show(correct ? "Bravo !" : "Dommage…", correct ? "success" : "error");
   }
 
   function goNext() {
+    setShowResult(false);
+    setQuestionDone(false);
     const nextIndex = currentIndex + 1;
     if (maxQuestions != null && nextIndex >= maxQuestions) {
       setGameOver(true);
@@ -277,10 +282,11 @@ export default function Module1Game() {
   const hintText = hintType === "hanzi" ? current.hanzi : hintType === "pinyin" ? current.pinyin : current.fr;
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: 20, gap: 16 }}
-    >
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={{ padding: 20, gap: 16 }}
+      >
       {/* Header / hint type */}
       <View style={{ alignItems: "center", gap: 8 }}>
         <Text
@@ -307,7 +313,7 @@ export default function Module1Game() {
           {hintText}
         </Text>
 
-        {hintType === "pinyin" && (
+        {hintType === "pinyin" && !questionDone && (
           <Pressable
             onPress={onPressAudio}
             disabled={audioDisabled}
@@ -458,34 +464,77 @@ export default function Module1Game() {
       {!questionDone ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
           <ZenButton title="Valider" onPress={validate} />
-        </View>
-      ) : (
+        </View> ) : (
         <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
           <ZenButton title="Question suivante" onPress={goNext} />
         </View>
+    
       )}
 
-      {feedback.length > 0 && (
-        <View
+      <View style={{ height: 40 }} />
+    </ScrollView>
+
+    {showResult && (
+      <Pressable
+        onPress={() => setShowResult(false)}
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 10,
+        }}
+      >
+        <Pressable
+          onPress={(e) => e.stopPropagation()}
           style={{
-            marginTop: 10,
-            gap: 6,
             backgroundColor: colors.card,
-            borderRadius: 12,
-            padding: 12,
+            borderRadius: 16,
+            padding: 20,
             borderWidth: 1,
             borderColor: colors.border,
+            width: "80%",
+            gap: 12,
           }}
         >
+          <Pressable
+            onPress={() => setShowResult(false)}
+            style={{ position: "absolute", top: 8, right: 8 }}
+          >
+            <Text style={{ fontSize: tx(18), color: colors.text }}>✕</Text>
+          </Pressable>
           {feedback.map((m, i) => (
             <Text key={i} style={{ fontSize: tx(14), color: colors.text }}>
               • {m}
             </Text>
           ))}
-        </View>
-      )}
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
+          <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 8 }}>
+            <Pressable
+              onPress={onPressAudio}
+              disabled={audioDisabled}
+              style={[
+                {
+                  backgroundColor: colors.background,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                },
+                audioDisabled && { opacity: 0.4 },
+              ]}
+            >
+              <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
+            </Pressable>
+            <ZenButton title="Question suivante" onPress={goNext} />
+          </View>
+        </Pressable>
+      </Pressable>
+    )}
+  </View>
   );
 }
