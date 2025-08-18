@@ -7,6 +7,7 @@ export type Word = {
   pinyin: string;   // with tones
   numeric: string;  //  ni3 hao3
   fr: string;
+  frDetails?: string;
   audioUrl?: string;
 };
 
