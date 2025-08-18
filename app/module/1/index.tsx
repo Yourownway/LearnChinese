@@ -510,11 +510,12 @@ export default function Module1Game() {
       {!questionDone ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
           <ZenButton title="Valider" onPress={validate} />
-        </View> ) : (
+        </View>
+      ) : (
         <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+          <ZenButton title="Solution" onPress={() => setShowResult(true)} />
           <ZenButton title={nextButtonTitle} onPress={goNext} />
         </View>
-    
       )}
 
       <View style={{ height: 40 }} />
