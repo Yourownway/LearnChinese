@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { FauxTextarea } from "../../../components/FauxTextarea";
@@ -20,6 +20,7 @@ type GameParams = {
 
 export default function Module1Game() {
   const params = useLocalSearchParams<GameParams>();
+  const router = useRouter();
   const { colors, tx } = useTheme();
   const toast = useToast();
 
@@ -252,13 +253,19 @@ export default function Module1Game() {
           Score final : {score}/{totalQuestions}
         </Text>
         <Text style={{ fontSize: tx(18), color: colors.text }}>{message}</Text>
-        <View style={{ alignSelf: "stretch" }}>
-          {wrongQuestions.map(w => (
-            <Text key={w.id} style={{ fontSize: tx(16), color: colors.text }}>
-              {`${w.hanzi} · ${w.pinyin} · ${w.fr}`}
-            </Text>
-          ))}
-        </View>
+        {wrongQuestions.length > 0 && (
+          <View style={{ alignSelf: "stretch" }}>
+            <ZenButton
+              title="Voir mes erreurs"
+              onPress={() =>
+                router.push({
+                  pathname: "/module/1/errors",
+                  params: { list: JSON.stringify(wrongQuestions) },
+                })
+              }
+            />
+          </View>
+        )}
       </View>
     );
   }
