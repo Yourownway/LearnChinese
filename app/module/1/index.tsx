@@ -423,20 +423,18 @@ export default function Module1Game() {
       )}
 
       {/* Actions */}
-      {!questionDone && (
+      {!questionDone ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
           <ZenButton title="Valider" onPress={validate} />
+        </View> ) : (
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+          <ZenButton title="Question suivante" onPress={goNext} />
         </View>
+    
       )}
 
       <View style={{ height: 40 }} />
     </ScrollView>
-
-    {questionDone && (
-      <View style={{ position: "absolute", bottom: 20, alignSelf: "center", zIndex: 20 }}>
-        <ZenButton title="Question suivante" onPress={goNext} />
-      </View>
-    )}
 
     {showResult && (
       <Pressable
@@ -494,6 +492,7 @@ export default function Module1Game() {
             >
               <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
             </Pressable>
+            <ZenButton title="Question suivante" onPress={goNext} />
           </View>
         </Pressable>
       </Pressable>
