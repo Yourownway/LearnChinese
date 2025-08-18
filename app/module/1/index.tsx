@@ -46,6 +46,8 @@ export default function Module1Game() {
     return n;
   }, [params.maxQuestions]);
 
+  const totalQuestions = maxQuestions ?? filtered.length;
+
   const noRepeatHintType = params.noRepeatHintType === "1";
 
   // allowed types from settings
@@ -197,7 +199,7 @@ export default function Module1Game() {
   function goNext() {
     const nextIndex = currentIndex + 1;
     if (maxQuestions != null && nextIndex >= maxQuestions) {
-      Alert.alert("Fin de partie", `Score final : ${score}/${maxQuestions}`, [{ text: "OK" }]);
+      Alert.alert("Fin de partie", `Score final : ${score}/${totalQuestions}`,[{ text: "OK" }]);
       // restart quick
       setCurrentIndex(0);
       setScore(0);
@@ -289,7 +291,7 @@ export default function Module1Game() {
         )}
 
         <Text style={{ marginTop: 8, fontWeight: "700", color: colors.text }}>
-          Score: {score}/{currentIndex + (questionDone ? 1 : 0)}
+          Score: {score}/{totalQuestions}
         </Text>
       </View>
 
