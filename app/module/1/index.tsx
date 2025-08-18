@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { Link, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { FauxTextarea } from "../../../components/FauxTextarea";
@@ -235,26 +235,41 @@ export default function Module1Game() {
     }
   }
 
-  function ResultScreen() {
-    const message = score / totalQuestions >= 0.8 ? "Bravo !" : "La prochaine fois ce sera mieux…";
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: colors.background,
-          padding: 20,
-          gap: 12,
-        }}
-      >
-        <Text style={{ fontSize: tx(24), fontWeight: "700", color: colors.text }}>
-          Score final : {score}/{totalQuestions}
-        </Text>
-        <Text style={{ fontSize: tx(18), color: colors.text }}>{message}</Text>
-      </View>
-    );
-  }
+    function ResultScreen() {
+      const message = score / totalQuestions >= 0.8 ? "Bravo !" : "La prochaine fois ce sera mieux…";
+      return (
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: colors.background,
+            padding: 20,
+            justifyContent: "space-between",
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 12,
+            }}
+          >
+            <Text style={{ fontSize: tx(24), fontWeight: "700", color: colors.text }}>
+              Score final : {score}/{totalQuestions}
+            </Text>
+            <Text style={{ fontSize: tx(18), color: colors.text }}>{message}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Link href="/module/1/settings" style={{ color: colors.text }}>
+              ← Paramètres
+            </Link>
+            <Link href="/" style={{ color: colors.text }}>
+              Menu principal →
+            </Link>
+          </View>
+        </View>
+      );
+    }
 
   if (gameOver) return <ResultScreen />;
   if (!current) return null;
