@@ -28,8 +28,7 @@ export default function Module1Settings() {
   }, [words, selectedSeries]);
 
   useEffect(() => {
-    const count = filteredWords.length;
-    setMaxQuestions((curr) => (curr === null || curr > count ? count : curr));
+    setMaxQuestions(filteredWords.length);
   }, [filteredWords.length]);
 
   useEffect(() => {
@@ -158,7 +157,7 @@ export default function Module1Settings() {
         </Text>
         <TextInput
           keyboardType="number-pad"
-          placeholder={`ex: ${filteredWords.length} (laisser vide pour tout)`}
+          placeholder="Laisser vide pour tout"
           placeholderTextColor={colors.muted}
           style={{
             borderWidth: 1,
