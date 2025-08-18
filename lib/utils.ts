@@ -25,8 +25,11 @@ export function stripAccents(s: string): string {
 }
 
 export function isFrenchAnswerCorrect(input: string, expected: string): boolean {
-  const normalize = (str: string) => stripAccents(str.trim().toLowerCase());
-  const expectedParts = expected.split("/").map((part) => normalize(part));
+  const normalize = (str: string) =>
+    stripAccents(str.trim().toLowerCase().replace(/[\u2019']/g, " "));
+  const expectedParts = expected
+    .split("/")
+    .map((part) => normalize(part).replace(/\s+/g, " "));
   const inputNorm = normalize(input).replace(/\s+/g, " ");
   if (expectedParts.includes(inputNorm)) return true;
   if (expectedParts.length > 1 && inputNorm === expectedParts.join(" ")) return true;
