@@ -27,6 +27,8 @@ export default function Module1Game() {
   const [shuffledCharacters, setShuffledCharacters] = useState<Word[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [wrongQuestions, setWrongQuestions] = useState<Word[]>([]);
 
   // inputs
   const [inputFR, setInputFR] = useState("");
@@ -177,6 +179,7 @@ export default function Module1Game() {
     // scoring
     const delta = correct ? 1 : 0;
     setScore((s) => s + delta);
+    if (!correct) setWrongQuestions((w) => [...w, current]);
 
     // End of question state
     setQuestionDone(true);
@@ -199,12 +202,7 @@ export default function Module1Game() {
   function goNext() {
     const nextIndex = currentIndex + 1;
     if (maxQuestions != null && nextIndex >= maxQuestions) {
-      Alert.alert("Fin de partie", `Score final : ${score}/${totalQuestions}`,[{ text: "OK" }]);
-      // restart quick
-      setCurrentIndex(0);
-      setScore(0);
-      setShuffledCharacters(shuffle(filtered));
-      lastHintTypeRef.current = null;
+      setGameOver(true);
       return;
     }
     setCurrentIndex(nextIndex);
@@ -233,6 +231,28 @@ export default function Module1Game() {
     }
   }
 
+  function ResultScreen() {
+    const message = score / totalQuestions >= 0.8 ? "Bravo !" : "La prochaine fois ce sera mieux…";
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: colors.background,
+          padding: 20,
+          gap: 12,
+        }}
+      >
+        <Text style={{ fontSize: tx(24), fontWeight: "700", color: colors.text }}>
+          Score final : {score}/{totalQuestions}
+        </Text>
+        <Text style={{ fontSize: tx(18), color: colors.text }}>{message}</Text>
+      </View>
+    );
+  }
+
+  if (gameOver) return <ResultScreen />;
   if (!current) return null;
 
   const hintLabel = hintType === "hanzi" ? "汉字" : hintType === "pinyin" ? "Pinyin" : "Traduction FR";
