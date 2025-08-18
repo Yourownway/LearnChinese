@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { FauxTextarea } from "../../../components/FauxTextarea";
 import { useToast } from "../../../components/Toast";
 import { ZenButton } from "../../../components/ZenButton";
@@ -197,6 +197,7 @@ export default function Module1Game() {
   }
 
   function goNext() {
+    setQuestionDone(false);
     const nextIndex = currentIndex + 1;
     if (maxQuestions != null && nextIndex >= maxQuestions) {
       Alert.alert("Fin de partie", `Score final : ${score}/${totalQuestions}`,[{ text: "OK" }]);
@@ -239,10 +240,11 @@ export default function Module1Game() {
   const hintText = hintType === "hanzi" ? current.hanzi : hintType === "pinyin" ? current.pinyin : current.fr;
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: 20, gap: 16 }}
-    >
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={{ padding: 20, gap: 16 }}
+      >
       {/* Header / hint type */}
       <View style={{ alignItems: "center", gap: 8 }}>
         <Text
@@ -269,7 +271,7 @@ export default function Module1Game() {
           {hintText}
         </Text>
 
-        {hintType === "pinyin" && (
+        {hintType === "pinyin" && !questionDone && (
           <Pressable
             onPress={onPressAudio}
             disabled={audioDisabled}
@@ -417,26 +419,33 @@ export default function Module1Game() {
       )}
 
       {/* Actions */}
-      {!questionDone ? (
+      {!questionDone && (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
           <ZenButton title="Valider" onPress={validate} />
         </View>
-      ) : (
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-          <ZenButton title="Question suivante" onPress={goNext} />
-        </View>
       )}
 
-      {feedback.length > 0 && (
+      <View style={{ height: 40 }} />
+    </ScrollView>
+
+    <Modal visible={questionDone} transparent animationType="fade">
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <View
           style={{
-            marginTop: 10,
-            gap: 6,
             backgroundColor: colors.card,
-            borderRadius: 12,
-            padding: 12,
+            borderRadius: 16,
+            padding: 20,
             borderWidth: 1,
             borderColor: colors.border,
+            width: "80%",
+            gap: 12,
           }}
         >
           {feedback.map((m, i) => (
@@ -444,10 +453,29 @@ export default function Module1Game() {
               • {m}
             </Text>
           ))}
+          <View style={{ flexDirection: "row", justifyContent: "center", gap: 12, marginTop: 8 }}>
+            <Pressable
+              onPress={onPressAudio}
+              disabled={audioDisabled}
+              style={[
+                {
+                  backgroundColor: colors.background,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                },
+                audioDisabled && { opacity: 0.4 },
+              ]}
+            >
+              <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
+            </Pressable>
+            <ZenButton title="Question suivante" onPress={goNext} />
+          </View>
         </View>
-      )}
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
+      </View>
+    </Modal>
+  </View>
   );
 }
