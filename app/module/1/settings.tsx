@@ -13,13 +13,24 @@ export default function Module1Settings() {
 
   const [words, setWords] = useState<Word[]>([]);
   const [selectedSeries, setSelectedSeries] = useState<Array<number> | "all">("all");
-  const [maxQuestions, setMaxQuestions] = useState<number | null>(20);
+  const [maxQuestions, setMaxQuestions] = useState<number | null>(null);
   const [noRepeatHintType, setNoRepeatHintType] = useState<boolean>(true);
 
   // NEW: question types allowed
   const [allowHanzi, setAllowHanzi] = useState(true);
   const [allowPinyin, setAllowPinyin] = useState(true);
   const [allowTranslation, setAllowTranslation] = useState(true);
+
+  const filteredWords = useMemo(() => {
+    return selectedSeries === "all"
+      ? words
+      : words.filter((w) => selectedSeries.includes(w.series ?? -1));
+  }, [words, selectedSeries]);
+
+  useEffect(() => {
+    const count = filteredWords.length;
+    setMaxQuestions((curr) => (curr === null || curr > count ? count : curr));
+  }, [filteredWords.length]);
 
   useEffect(() => {
     loadWordsLocalOnly()
@@ -55,11 +66,7 @@ export default function Module1Settings() {
   }
 
   function startGame() {
-    const filtered =
-      selectedSeries === "all"
-        ? words
-        : words.filter((w) => selectedSeries.includes(w.series ?? -1));
-    if (filtered.length < 5) {
+    if (filteredWords.length < 5) {
       Alert.alert("Sélection insuffisante", "Il faut au moins 5 caractères dans la sélection.");
       return;
     }
@@ -73,11 +80,12 @@ export default function Module1Settings() {
       return;
     }
 
+    const max = maxQuestions ?? filteredWords.length;
     router.push({
       pathname: "/module/1",
       params: {
         series: selectedSeries === "all" ? "all" : selectedSeries.join(","),
-        maxQuestions: maxQuestions ?? "",
+        maxQuestions: String(max),
         noRepeatHintType: noRepeatHintType ? "1" : "0",
         types: types.join(","),
       },
@@ -150,7 +158,7 @@ export default function Module1Settings() {
         </Text>
         <TextInput
           keyboardType="number-pad"
-          placeholder="ex: 20 (laisser vide pour illimité)"
+          placeholder={`ex: ${filteredWords.length} (laisser vide pour tout)`}
           placeholderTextColor={colors.muted}
           style={{
             borderWidth: 1,
@@ -163,15 +171,16 @@ export default function Module1Settings() {
           }}
           value={maxQuestions === null ? "" : String(maxQuestions)}
           onChangeText={(t) => {
+            const count = filteredWords.length;
             const v =
               t.trim() === ""
                 ? null
-                : Math.max(1, Math.min(200, Number(t.replace(/[^0-9]/g, ""))));
+                : Math.max(1, Math.min(count, Number(t.replace(/[^0-9]/g, ""))));
             setMaxQuestions(v);
           }}
         />
         <Text style={{ fontSize: tx(12), color: colors.muted }}>
-          Laisser vide pour “illimité”. Plage conseillée : 5–200.
+          {`Laisser vide pour utiliser tous les caractères sélectionnés (max : ${filteredWords.length}).`}
         </Text>
       </View>
 
