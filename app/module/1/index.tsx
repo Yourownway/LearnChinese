@@ -211,7 +211,7 @@ export default function Module1Game() {
     setShowResult(false);
     setQuestionDone(false);
     const nextIndex = currentIndex + 1;
-    if (maxQuestions != null && nextIndex >= maxQuestions) {
+    if (nextIndex >= totalQuestions) {
       setGameOver(true);
       return;
     }
@@ -277,6 +277,9 @@ export default function Module1Game() {
 
   if (gameOver) return <ResultScreen />;
   if (!current) return null;
+
+  const isLastQuestion = currentIndex + 1 >= totalQuestions;
+  const nextButtonTitle = isLastQuestion ? "Voir les résultats" : "Question suivante";
 
   const hintLabel = hintType === "hanzi" ? "汉字" : hintType === "pinyin" ? "Pinyin" : "Traduction FR";
   const hintText = hintType === "hanzi" ? current.hanzi : hintType === "pinyin" ? current.pinyin : current.fr;
@@ -466,7 +469,7 @@ export default function Module1Game() {
           <ZenButton title="Valider" onPress={validate} />
         </View> ) : (
         <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-          <ZenButton title="Question suivante" onPress={goNext} />
+          <ZenButton title={nextButtonTitle} onPress={goNext} />
         </View>
     
       )}
@@ -530,7 +533,7 @@ export default function Module1Game() {
             >
               <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
             </Pressable>
-            <ZenButton title="Question suivante" onPress={goNext} />
+            <ZenButton title={nextButtonTitle} onPress={goNext} />
           </View>
         </Pressable>
       </Pressable>
