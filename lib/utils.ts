@@ -15,6 +15,7 @@ export function shuffle<T>(arr: T[]): T[] {
 
 export function ensureFiveChoices(correct: Word, source: Word[]): Word[] {
   const others = source.filter((w) => w.id !== correct.id);
-  const distractors = shuffle(others).slice(0, Math.max(0, 4));
+  // Pick up to four distractors (less if there aren't enough words left)
+  const distractors = shuffle(others).slice(0, Math.min(4, others.length));
   return shuffle([correct, ...distractors]);
 }
