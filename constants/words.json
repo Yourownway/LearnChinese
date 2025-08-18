@@ -8,7 +8,7 @@
   { "id": "7", "series": 2, "hanzi": "不", "pinyin": "bù", "numeric": "bu4", "fr": "négation" },
   { "id": "8", "series": 2, "hanzi": "法", "pinyin": "fǎ", "numeric": "fa3", "fr": "loi/méthode" },
   { "id": "9", "series": 2, "hanzi": "国", "pinyin": "guó", "numeric": "guo2", "fr": "pays" },
-  { "id": "10", "series": 2, "hanzi": "交", "pinyin": "jiāo", "numeric": "jiao1", "fr": "échanger" },
+  { "id": "10", "series": 2, "hanzi": "叫", "pinyin": "jiào", "numeric": "jiao4", "fr": "s'appeler" },
   { "id": "11", "series": 2, "hanzi": "吗", "pinyin": "ma", "numeric": "ma", "fr": "est-ce-que","frDetails":"particule interrogative" },
   { "id": "12", "series": 2, "hanzi": "么", "pinyin": "me", "numeric": "me", "fr": "quoi","frDetails":"suffixe" },
   { "id": "13", "series": 2, "hanzi": "们", "pinyin": "men", "numeric": "men", "fr": "pluriel","frDetails":"suffixe"},
@@ -20,7 +20,7 @@
   { "id": "19", "series": 2, "hanzi": "是", "pinyin": "shì", "numeric": "shi4", "fr": "être" },
   { "id": "20", "series": 2, "hanzi": "他", "pinyin": "tā", "numeric": "ta1", "fr": "il" },
   { "id": "21", "series": 2, "hanzi": "她", "pinyin": "tā", "numeric": "ta1", "fr": "elle" },
-  { "id": "22", "series": 2, "hanzi": "行", "pinyin": "xíng", "numeric": "xing2", "fr": "nom" },
+  { "id": "22", "series": 2, "hanzi": "姓", "pinyin": "xìng", "numeric": "xing4", "fr": "nom","frDetails":"de famille" },
   { "id": "23", "series": 2, "hanzi": "中", "pinyin": "zhōng", "numeric": "zhong1", "fr": "milieu" },
   { "id": "24", "series": 2, "hanzi": "字", "pinyin": "zì", "numeric": "zi4", "fr": "caractère" }
 ]
