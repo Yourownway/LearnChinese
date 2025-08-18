@@ -8,7 +8,7 @@ import { useTheme } from "../../../hooks/useTheme";
 import { canPlayRemoteAudio, getPlayableAudioSource, playAudioFileOrTTS } from "../../../lib/audio";
 import { loadWordsLocalOnly, type Word } from "../../../lib/data";
 import { isPinyinAnswerCorrect } from "../../../lib/pinyin";
-import { ensureFiveChoices, pickRandom, shuffle } from "../../../lib/utils";
+import { ensureFiveChoices, pickRandom, shuffle, stripAccents } from "../../../lib/utils";
 
 type HintMode = "hanzi" | "pinyin" | "translation";
 type GameParams = {
@@ -138,7 +138,9 @@ export default function Module1Game() {
 
     if (hintType === "hanzi") {
       // Expect FR + pinyin
-      const frOK = inputFR.trim().toLowerCase() === current.fr.toLowerCase();
+      const frOK =
+        stripAccents(inputFR.trim().toLowerCase()) ===
+        stripAccents(current.fr.toLowerCase());
       if (!frOK) { correct = false; messages.push(`Traduction attendue : "${current.fr}"`); }
       const { ok: pinOK, accentWarning, missingTones, corrected } =
         isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
@@ -153,7 +155,9 @@ export default function Module1Game() {
 
     if (hintType === "pinyin") {
       // Expect FR + choice hanzi (accept multi homophones)
-      const frOK = inputFR.trim().toLowerCase() === current.fr.toLowerCase();
+      const frOK =
+        stripAccents(inputFR.trim().toLowerCase()) ===
+        stripAccents(current.fr.toLowerCase());
       if (!frOK) { correct = false; messages.push(`Traduction attendue : "${current.fr}"`); }
       const isAccepted = selectedId != null && acceptedIds.has(selectedId);
       if (!isAccepted) { correct = false; messages.push("Mauvais caractère choisi."); }
