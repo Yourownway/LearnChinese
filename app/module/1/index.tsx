@@ -260,11 +260,33 @@ export default function Module1Game() {
             <Text style={{ fontSize: tx(18), color: colors.text }}>{message}</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Link href="/module/1/settings" style={{ color: colors.text }}>
-              ← Paramètres
+            <Link href="/module/1/settings" asChild>
+              <Pressable
+                style={{
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                }}
+              >
+                <Text style={{ color: colors.text, fontWeight: "600" }}>← Paramètres</Text>
+              </Pressable>
             </Link>
-            <Link href="/" style={{ color: colors.text }}>
-              Menu principal →
+            <Link href="/" asChild>
+              <Pressable
+                style={{
+                  backgroundColor: colors.card,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                }}
+              >
+                <Text style={{ color: colors.text, fontWeight: "600" }}>Menu principal →</Text>
+              </Pressable>
             </Link>
           </View>
         </View>
