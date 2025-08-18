@@ -23,3 +23,16 @@ export function ensureFiveChoices(correct: Word, source: Word[]): Word[] {
 export function stripAccents(s: string): string {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
+
+export function isFrenchAnswerCorrect(input: string, expected: string): boolean {
+  const normalize = (str: string) => stripAccents(str.trim().toLowerCase());
+  const expectedParts = expected.split("/").map((part) => normalize(part));
+  const inputNorm = normalize(input).replace(/\s+/g, " ");
+  if (expectedParts.includes(inputNorm)) return true;
+  if (expectedParts.length > 1 && inputNorm === expectedParts.join(" ")) return true;
+  return false;
+}
+
+export function formatFr(expected: string): string {
+  return expected.replace(/\//g, " ");
+}

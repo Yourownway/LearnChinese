@@ -8,7 +8,7 @@ import { useTheme } from "../../../hooks/useTheme";
 import { canPlayRemoteAudio, getPlayableAudioSource, playAudioFileOrTTS } from "../../../lib/audio";
 import { loadWordsLocalOnly, type Word } from "../../../lib/data";
 import { isPinyinAnswerCorrect } from "../../../lib/pinyin";
-import { ensureFiveChoices, pickRandom, shuffle, stripAccents } from "../../../lib/utils";
+import { ensureFiveChoices, pickRandom, shuffle, isFrenchAnswerCorrect, formatFr } from "../../../lib/utils";
 
 type HintMode = "hanzi" | "pinyin" | "translation";
 type GameParams = {
@@ -143,10 +143,8 @@ export default function Module1Game() {
 
     if (hintType === "hanzi") {
       // Expect FR + pinyin
-      const frOK =
-        stripAccents(inputFR.trim().toLowerCase()) ===
-        stripAccents(current.fr.toLowerCase());
-      if (!frOK) { correct = false; messages.push(`Traduction attendue : "${current.fr}"`); }
+      const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
+      if (!frOK) { correct = false; messages.push(`Traduction attendue : "${formatFr(current.fr)}"`); }
       const { ok: pinOK, accentWarning, missingTones, corrected } =
         isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
       if (!pinOK) {
@@ -160,10 +158,8 @@ export default function Module1Game() {
 
     if (hintType === "pinyin") {
       // Expect FR + choice hanzi (accept multi homophones)
-      const frOK =
-        stripAccents(inputFR.trim().toLowerCase()) ===
-        stripAccents(current.fr.toLowerCase());
-      if (!frOK) { correct = false; messages.push(`Traduction attendue : "${current.fr}"`); }
+      const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
+      if (!frOK) { correct = false; messages.push(`Traduction attendue : "${formatFr(current.fr)}"`); }
       const isAccepted = selectedId != null && acceptedIds.has(selectedId);
       if (!isAccepted) { correct = false; messages.push("Mauvais caractère choisi."); }
     }
@@ -199,7 +195,7 @@ export default function Module1Game() {
         .filter(Boolean)
         .join(" / ") || current.hanzi;
 
-    const solutionLine = `Solution — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${current.fr}`;
+    const solutionLine = `Solution — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${formatFr(current.fr)}`;
     setFeedback([header, ...messages, solutionLine]);
     setShowResult(true);
 
@@ -279,7 +275,7 @@ export default function Module1Game() {
   if (!current) return null;
 
   const hintLabel = hintType === "hanzi" ? "汉字" : hintType === "pinyin" ? "Pinyin" : "Traduction FR";
-  const hintText = hintType === "hanzi" ? current.hanzi : hintType === "pinyin" ? current.pinyin : current.fr;
+  const hintText = hintType === "hanzi" ? current.hanzi : hintType === "pinyin" ? current.pinyin : formatFr(current.fr);
 
   return (
     <View style={{ flex: 1 }}>
@@ -352,7 +348,7 @@ export default function Module1Game() {
           }}
         >
           <Text style={{ fontSize: tx(14), color: colors.muted }}>Traduction (FR)</Text>
-          <FauxTextarea value={questionDone ? current.fr : ""} disabled={questionDone} placeholder="—" />
+          <FauxTextarea value={questionDone ? formatFr(current.fr) : ""} disabled={questionDone} placeholder="—" />
           <TextInput
             value={inputFR}
             onChangeText={setInputFR}
