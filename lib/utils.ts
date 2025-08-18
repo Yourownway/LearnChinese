@@ -19,3 +19,7 @@ export function ensureFiveChoices(correct: Word, source: Word[]): Word[] {
   const distractors = shuffle(others).slice(0, Math.min(4, others.length));
   return shuffle([correct, ...distractors]);
 }
+
+export function stripAccents(s: string): string {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
