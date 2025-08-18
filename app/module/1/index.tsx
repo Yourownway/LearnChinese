@@ -25,6 +25,7 @@ export default function Module1Game() {
   const toast = useToast();
 
   const [filtered, setFiltered] = useState<Word[]>([]);
+  const originalFilteredRef = useRef<Word[]>([]);
   const [shuffledCharacters, setShuffledCharacters] = useState<Word[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -44,13 +45,18 @@ export default function Module1Game() {
   const [feedback, setFeedback] = useState<string[]>([]);
   const [showResult, setShowResult] = useState(false);
 
-  const maxQuestions = useMemo(() => {
+  const maxQuestionsParam = useMemo(() => {
     const raw = params.maxQuestions ?? "";
     const n = String(raw).trim() === "" ? null : Math.max(1, Number(raw));
     return n;
   }, [params.maxQuestions]);
 
-  const totalQuestions = maxQuestions ?? filtered.length;
+  const [maxQ, setMaxQ] = useState<number | null>(maxQuestionsParam);
+  useEffect(() => {
+    setMaxQ(maxQuestionsParam);
+  }, [maxQuestionsParam]);
+
+  const totalQuestions = maxQ ?? filtered.length;
 
   const noRepeatHintType = params.noRepeatHintType === "1";
 
@@ -75,6 +81,7 @@ export default function Module1Game() {
         if (filteredList.length < 5) {
           Alert.alert("Sélection insuffisante", "Il faut au moins 5 caractères dans la sélection.");
         }
+        originalFilteredRef.current = filteredList;
         setFiltered(filteredList);
         setShuffledCharacters(shuffle(filteredList));
       })
@@ -241,6 +248,27 @@ export default function Module1Game() {
     }
   }
 
+  function restartGame() {
+    setScore(0);
+    setCurrentIndex(0);
+    setWrongQuestions([]);
+    setFiltered(originalFilteredRef.current);
+    setShuffledCharacters(shuffle(originalFilteredRef.current));
+    setMaxQ(maxQuestionsParam);
+    setGameOver(false);
+  }
+
+  function replayErrorsOnly() {
+    if (wrongQuestions.length === 0) return;
+    setScore(0);
+    setCurrentIndex(0);
+    setFiltered(wrongQuestions);
+    setShuffledCharacters(shuffle(wrongQuestions));
+    setWrongQuestions([]);
+    setMaxQ(wrongQuestions.length);
+    setGameOver(false);
+  }
+
   function ResultScreen() {
     const message = score / totalQuestions >= 0.8 ? "Bravo !" : "La prochaine fois ce sera mieux…";
     return (
@@ -258,8 +286,8 @@ export default function Module1Game() {
           Score final : {score}/{totalQuestions}
         </Text>
         <Text style={{ fontSize: tx(18), color: colors.text }}>{message}</Text>
-        {wrongQuestions.length > 0 && (
-          <View style={{ alignSelf: "stretch" }}>
+        <View style={{ alignSelf: "stretch", gap: 12 }}>
+          {wrongQuestions.length > 0 && (
             <ZenButton
               title="Voir mes erreurs"
               onPress={() =>
@@ -269,8 +297,17 @@ export default function Module1Game() {
                 })
               }
             />
-          </View>
-        )}
+          )}
+          <ZenButton title="Rejouer" onPress={restartGame} />
+          {wrongQuestions.length > 0 && (
+            <ZenButton title="Rejouer mes erreurs" onPress={replayErrorsOnly} />
+          )}
+          <ZenButton title="Menu principal" onPress={() => router.push("/")} />
+          <ZenButton
+            title="Paramètres du module 1"
+            onPress={() => router.push("/module/1/settings")}
+          />
+        </View>
       </View>
     );
   }
@@ -315,6 +352,12 @@ export default function Module1Game() {
         >
           {hintText}
         </Text>
+
+        {hintType === "translation" && current.frDetails && (
+          <Text style={{ marginTop: 4, fontSize: tx(16), color: colors.muted }}>
+            {current.frDetails}
+          </Text>
+        )}
 
         {hintType === "pinyin" && !questionDone && (
           <Pressable
