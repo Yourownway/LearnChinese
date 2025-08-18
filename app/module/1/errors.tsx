@@ -4,6 +4,7 @@ import { ScrollView, Text, View } from "react-native";
 import { ZenButton } from "../../../components/ZenButton";
 import { useTheme } from "../../../hooks/useTheme";
 import { type Word } from "../../../lib/data";
+import { formatFr } from "../../../lib/utils";
 
 export default function ErrorListScreen() {
   const { colors, tx } = useTheme();
@@ -43,7 +44,7 @@ export default function ErrorListScreen() {
               {w.hanzi}
             </Text>
             <Text style={{ fontSize: tx(16), color: colors.text }}>
-              {w.pinyin} · {w.fr}
+              {w.pinyin} · {formatFr(w.fr)}
             </Text>
           </View>
         ))}
