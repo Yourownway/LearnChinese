@@ -242,7 +242,7 @@ export default function Module1Game() {
         style={{
           flex: 1,
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           backgroundColor: colors.background,
           padding: 20,
           gap: 12,
@@ -252,6 +252,13 @@ export default function Module1Game() {
           Score final : {score}/{totalQuestions}
         </Text>
         <Text style={{ fontSize: tx(18), color: colors.text }}>{message}</Text>
+        <View style={{ alignSelf: "stretch" }}>
+          {wrongQuestions.map(w => (
+            <Text key={w.id} style={{ fontSize: tx(16), color: colors.text }}>
+              {`${w.hanzi} · ${w.pinyin} · ${w.fr}`}
+            </Text>
+          ))}
+        </View>
       </View>
     );
   }
