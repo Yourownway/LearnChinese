@@ -23,7 +23,6 @@ export default function Module1Game() {
   const { colors, tx } = useTheme();
   const toast = useToast();
 
-  const [words, setWords] = useState<Word[]>([]);
   const [filtered, setFiltered] = useState<Word[]>([]);
   const [shuffledCharacters, setShuffledCharacters] = useState<Word[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,28 +33,20 @@ export default function Module1Game() {
   const [inputPinyin, setInputPinyin] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // hint visual “fake textareas”
-  const [hintedFR, setHintedFR] = useState("");
-  const [hintedPinyin, setHintedPinyin] = useState("");
-
   // per-question
   const [hintType, setHintType] = useState<HintMode>("hanzi");
   const lastHintTypeRef = useRef<HintMode | null>(null);
   const [choices, setChoices] = useState<Word[]>([]);
-  const [errorCount, setErrorCount] = useState(0);
-  const [hintCount, setHintCount] = useState(0); // global per question (max 3)
-  const [revealed, setRevealed] = useState(false);
   const [questionDone, setQuestionDone] = useState(false);
-  const [wasCorrect, setWasCorrect] = useState<boolean | null>(null);
   const [feedback, setFeedback] = useState<string[]>([]);
-  const maxErrors = 3;
-  const maxHints = 3;
 
   const maxQuestions = useMemo(() => {
     const raw = params.maxQuestions ?? "";
     const n = String(raw).trim() === "" ? null : Math.max(1, Math.min(200, Number(raw)));
     return n;
   }, [params.maxQuestions]);
+
+  const totalQuestions = maxQuestions ?? filtered.length;
 
   const noRepeatHintType = params.noRepeatHintType === "1";
 
@@ -71,7 +62,6 @@ export default function Module1Game() {
   useEffect(() => {
     loadWordsLocalOnly()
       .then((all) => {
-        setWords(all);
         let filteredList: Word[];
         if (!params.series || params.series === "all") filteredList = all;
         else {
@@ -133,70 +123,12 @@ export default function Module1Game() {
     setChoices(ensureFiveChoices(current, filtered));
     setInputFR("");
     setInputPinyin("");
-    setHintedFR("");
-    setHintedPinyin("");
     setSelectedId(null);
-    setErrorCount(0);
-    setHintCount(0);
-    setRevealed(false);
     setQuestionDone(false);
-    setWasCorrect(null);
     setFeedback([]);
   }, [current, allowedTypes, noRepeatHintType, filtered]);
 
-  // ===== HINTS (pistes) =====
-  function revealSolution(reason: "3hints" | "3errors") {
-    setRevealed(true);
-    setQuestionDone(true);
-    setWasCorrect(false);
-    setHintedFR(current.fr);
-    setHintedPinyin(current.pinyin);
-
-    const hanziSolutions =
-      Array.from(acceptedIds)
-        .map(id => filtered.find(w => w.id === id)?.hanzi || choices.find(w => w.id === id)?.hanzi || "")
-        .filter(Boolean)
-        .join(" / ") || current.hanzi;
-
-    const msg =
-      reason === "3hints"
-        ? `Solution révélée (3 pistes) — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${current.fr}`
-        : `Solution révélée (3 erreurs) — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${current.fr}`;
-    setFeedback(f => [...f, "Dommage !", msg]);
-    toast.show("Dommage…", "error");
-  }
-
-  function addHintFR() {
-    if (questionDone || revealed || hintCount >= maxHints) return;
-    const expected = current.fr;
-    const nextLen = Math.min(expected.length, hintedFR.length + 1);
-    if (nextLen === hintedFR.length) return;
-    setHintedFR(expected.slice(0, nextLen));
-    const nextCount = hintCount + 1;
-    setHintCount(nextCount);
-    if (nextCount >= maxHints) {
-      revealSolution("3hints");
-    }
-  }
-
-  function addHintPinyin() {
-    if (questionDone || revealed || hintCount >= maxHints) return;
-    const expected = current.pinyin;
-    const nextLen = Math.min(expected.length, hintedPinyin.length + 1);
-    if (nextLen === hintedPinyin.length) return;
-    setHintedPinyin(expected.slice(0, nextLen));
-    const nextCount = hintCount + 1;
-    setHintCount(nextCount);
-    if (nextCount >= maxHints) {
-      revealSolution("3hints");
-    }
-  }
-
-  function revealByErrorsIfNeeded(newErrors: number) {
-    if (newErrors >= maxErrors && !revealed) {
-      revealSolution("3errors");
-    }
-  }
+  // (no hints)
 
   // ===== VALIDATE =====
   function validate() {
@@ -243,27 +175,14 @@ export default function Module1Game() {
     }
 
     // scoring
-    let delta = 0;
-    if (revealed) {
-      delta = 0;
-    } else {
-      if (correct) delta = 5;
-      delta -= errorCount; // -1 per error
-      delta -= hintCount;  // -1 per hint
-      if (delta < 0) delta = 0;
-    }
+    const delta = correct ? 1 : 0;
     setScore((s) => s + delta);
 
     // End of question state
     setQuestionDone(true);
-    setWasCorrect(correct && !revealed);
-
-    // Always show full solution when question is done
-    setHintedFR(current.fr);
-    setHintedPinyin(current.pinyin);
 
     // Feedback lines + Bravo/Dommage + solution (list all accepted hanzi if multiple)
-    const header = correct && !revealed ? "Bravo !" : "Dommage !";
+    const header = correct ? "Bravo !" : "Dommage !";
     const hanziSolutions =
       Array.from(acceptedIds)
         .map(id => filtered.find(w => w.id === id)?.hanzi || choices.find(w => w.id === id)?.hanzi || "")
@@ -274,13 +193,13 @@ export default function Module1Game() {
     setFeedback([header, ...messages, solutionLine]);
 
     // Toast
-    toast.show(correct && !revealed ? "Bravo !" : "Dommage…", correct ? "success" : "error");
+    toast.show(correct ? "Bravo !" : "Dommage…", correct ? "success" : "error");
   }
 
   function goNext() {
     const nextIndex = currentIndex + 1;
     if (maxQuestions != null && nextIndex >= maxQuestions) {
-      Alert.alert("Fin de partie", `Score final : ${score}`, [{ text: "OK" }]);
+      Alert.alert("Fin de partie", `Score final : ${score}/${totalQuestions}`,[{ text: "OK" }]);
       // restart quick
       setCurrentIndex(0);
       setScore(0);
@@ -319,10 +238,6 @@ export default function Module1Game() {
   const hintLabel = hintType === "hanzi" ? "汉字" : hintType === "pinyin" ? "Pinyin" : "Traduction FR";
   const hintText = hintType === "hanzi" ? current.hanzi : hintType === "pinyin" ? current.pinyin : current.fr;
 
-  // Which hint buttons to show on this screen
-  const showHintFR = hintType === "hanzi" || hintType === "pinyin";
-  const showHintPinyin = hintType === "hanzi" || hintType === "translation";
-
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -354,27 +269,29 @@ export default function Module1Game() {
           {hintText}
         </Text>
 
-        <Pressable
-          onPress={onPressAudio}
-          disabled={audioDisabled}
-          style={[
-            {
-              marginTop: 8,
-              backgroundColor: colors.card,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              borderRadius: 10,
-              borderWidth: 1,
-              borderColor: colors.border,
-            },
-            audioDisabled && { opacity: 0.4 },
-          ]}
-        >
-          <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
-        </Pressable>
+        {hintType === "pinyin" && (
+          <Pressable
+            onPress={onPressAudio}
+            disabled={audioDisabled}
+            style={[
+              {
+                marginTop: 8,
+                backgroundColor: colors.card,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: colors.border,
+              },
+              audioDisabled && { opacity: 0.4 },
+            ]}
+          >
+            <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
+          </Pressable>
+        )}
 
         <Text style={{ marginTop: 8, fontWeight: "700", color: colors.text }}>
-          Score: {score}
+          Score: {score}/{totalQuestions}
         </Text>
       </View>
 
@@ -391,7 +308,7 @@ export default function Module1Game() {
           }}
         >
           <Text style={{ fontSize: tx(14), color: colors.muted }}>Traduction (FR)</Text>
-          <FauxTextarea value={hintedFR} disabled={questionDone || revealed} placeholder="—" />
+          <FauxTextarea value={questionDone ? current.fr : ""} disabled={questionDone} placeholder="—" />
           <TextInput
             value={inputFR}
             onChangeText={setInputFR}
@@ -427,7 +344,7 @@ export default function Module1Game() {
           <Text style={{ fontSize: tx(14), color: colors.muted }}>
             Pinyin (accents obligatoires; numérique toléré)
           </Text>
-          <FauxTextarea value={hintedPinyin} disabled={questionDone || revealed} placeholder="—" />
+          <FauxTextarea value={questionDone ? current.pinyin : ""} disabled={questionDone} placeholder="—" />
           <TextInput
             value={inputPinyin}
             onChangeText={setInputPinyin}
@@ -502,16 +419,6 @@ export default function Module1Game() {
       {/* Actions */}
       {!questionDone ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-          <ZenButton
-            title={`Hint Pinyin (${hintCount}/3)`}
-            onPress={addHintPinyin}
-            disabled={revealed || hintCount >= 3 || !showHintPinyin}
-          />
-          <ZenButton
-            title={`Hint FR (${hintCount}/3)`}
-            onPress={addHintFR}
-            disabled={revealed || hintCount >= 3 || !showHintFR}
-          />
           <ZenButton title="Valider" onPress={validate} />
         </View>
       ) : (
