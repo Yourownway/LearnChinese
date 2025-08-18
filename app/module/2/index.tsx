@@ -8,9 +8,13 @@ import { loadWordsLocalOnly, type Word } from "../../../lib/data";
 const DISPLAY_OPTIONS = ["hanzi", "fr", "pinyin"] as const;
 type DisplayPref = typeof DISPLAY_OPTIONS[number];
 
+// Number of columns (cards per row)
+const COLUMN_OPTIONS = [2, 3, 4, 5, 6] as const;
+type ColumnCount = typeof COLUMN_OPTIONS[number];
+
 type SortOrder = "asc" | "desc";
 
-type SeriesSelection = Array<number> | "all";
+type SeriesSelection = number[] | "all";
 
 export default function Module2Dictionary() {
   const { colors, tx } = useTheme();
@@ -20,6 +24,7 @@ export default function Module2Dictionary() {
   const [displayPref, setDisplayPref] = useState<DisplayPref>("hanzi");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [selectedSeries, setSelectedSeries] = useState<SeriesSelection>("all");
+  const [columns, setColumns] = useState<ColumnCount>(4);
 
   // Load words once
   useEffect(() => {
@@ -124,6 +129,30 @@ export default function Module2Dictionary() {
         </View>
       </View>
 
+      {/* Column size selection */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+        <Text style={{ color: colors.text, fontSize: tx(14) }}>Par ligne :</Text>
+        {COLUMN_OPTIONS.map((n) => {
+          const active = columns === n;
+          return (
+            <Pressable
+              key={n}
+              onPress={() => setColumns(n)}
+              style={{
+                paddingVertical: 4,
+                paddingHorizontal: 8,
+                borderRadius: 6,
+                backgroundColor: active ? colors.accent : "transparent",
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Text style={{ color: active ? "#fff" : colors.text, fontSize: tx(14) }}>{n}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
       {/* Series selection */}
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         <Pressable
@@ -166,6 +195,7 @@ export default function Module2Dictionary() {
 
   const renderItem = ({ item }: { item: Word }) => {
     const order = displayOrder;
+    const scale = 4 / columns;
     return (
       <Pressable
         onPress={() => router.push({ pathname: "/module/2/[id]", params: { id: item.id } })}
@@ -175,20 +205,20 @@ export default function Module2Dictionary() {
           style={{
             backgroundColor: colors.card,
             borderRadius: 8,
-            paddingVertical: 10,
+            paddingVertical: 10 * scale,
             alignItems: "center",
             borderWidth: 1,
             borderColor: colors.border,
-            gap: 4,
+            gap: 4 * scale,
           }}
         >
-          <Text style={{ fontSize: tx(24), color: colors.text, fontWeight: "700" }}>
+          <Text style={{ fontSize: tx(24 * scale), color: colors.text, fontWeight: "700" }}>
             {item[order[0]] as string}
           </Text>
-          <Text style={{ fontSize: tx(14), color: colors.text }}>
+          <Text style={{ fontSize: tx(14 * scale), color: colors.text }}>
             {item[order[1]] as string}
           </Text>
-          <Text style={{ fontSize: tx(14), color: colors.text }}>
+          <Text style={{ fontSize: tx(14 * scale), color: colors.text }}>
             {item[order[2]] as string}
           </Text>
         </View>
@@ -200,7 +230,8 @@ export default function Module2Dictionary() {
     <FlatList
       data={sorted}
       keyExtractor={(item) => item.id}
-      numColumns={4}
+      numColumns={columns}
+      key={columns}
       renderItem={renderItem}
       ListHeaderComponent={renderHeader}
       stickyHeaderIndices={[0]}
