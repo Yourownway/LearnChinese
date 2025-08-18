@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { useTheme } from "../../../hooks/useTheme";
 import { loadWordsLocalOnly, type Word } from "../../../lib/data";
 
@@ -25,6 +25,7 @@ export default function Module2Dictionary() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [selectedSeries, setSelectedSeries] = useState<SeriesSelection>("all");
   const [columns, setColumns] = useState<ColumnCount>(4);
+  const [query, setQuery] = useState("");
 
   // Load words once
   useEffect(() => {
@@ -46,16 +47,26 @@ export default function Module2Dictionary() {
       : words.filter((w) => selectedSeries.includes(w.series ?? -1));
   }, [words, selectedSeries]);
 
+  const searched = useMemo(() => {
+    if (!query.trim()) return filtered;
+    const key = displayPref === "pinyin" ? "pinyin" : "fr";
+    const q = query.toLowerCase();
+    return filtered.filter((w) => {
+      const val = (w as any)[key] as string;
+      return val.toLowerCase().includes(q);
+    });
+  }, [filtered, query, displayPref]);
+
   const sorted = useMemo(() => {
     const key = displayPref === "hanzi" ? "hanzi" : displayPref === "fr" ? "fr" : "pinyin";
-    return [...filtered].sort((a, b) => {
+    return [...searched].sort((a, b) => {
       const aVal = (a as any)[key] as string;
       const bVal = (b as any)[key] as string;
       return sortOrder === "asc"
         ? aVal.localeCompare(bVal)
         : bVal.localeCompare(aVal);
     });
-  }, [filtered, displayPref, sortOrder]);
+  }, [searched, displayPref, sortOrder]);
 
   const displayOrder = useMemo(() => {
     if (displayPref === "hanzi") return ["hanzi", "pinyin", "fr"] as const;
@@ -88,8 +99,25 @@ export default function Module2Dictionary() {
         borderBottomColor: colors.border,
         borderBottomWidth: 1,
         gap: 12,
+        zIndex: 1,
+        elevation: 1,
       }}
     >
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder={displayPref === "pinyin" ? "Recherche (pinyin)" : "Recherche (français)"}
+        placeholderTextColor={colors.muted}
+        style={{
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 6,
+          paddingVertical: 4,
+          paddingHorizontal: 8,
+          color: colors.text,
+          fontSize: tx(14),
+        }}
+      />
       {/* Sorting + display preference */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Pressable onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
