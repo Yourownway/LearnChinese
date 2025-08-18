@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { FauxTextarea } from "../../../components/FauxTextarea";
 import { useToast } from "../../../components/Toast";
 import { ZenButton } from "../../../components/ZenButton";
@@ -39,6 +39,7 @@ export default function Module1Game() {
   const [choices, setChoices] = useState<Word[]>([]);
   const [questionDone, setQuestionDone] = useState(false);
   const [feedback, setFeedback] = useState<string[]>([]);
+  const [showResult, setShowResult] = useState(false);
 
   const maxQuestions = useMemo(() => {
     const raw = params.maxQuestions ?? "";
@@ -126,6 +127,7 @@ export default function Module1Game() {
     setSelectedId(null);
     setQuestionDone(false);
     setFeedback([]);
+    setShowResult(false);
   }, [current, allowedTypes, noRepeatHintType, filtered]);
 
   // (no hints)
@@ -191,12 +193,14 @@ export default function Module1Game() {
 
     const solutionLine = `Solution — 汉字: ${hanziSolutions} · Pinyin: ${current.pinyin} · FR: ${current.fr}`;
     setFeedback([header, ...messages, solutionLine]);
+    setShowResult(true);
 
     // Toast
     toast.show(correct ? "Bravo !" : "Dommage…", correct ? "success" : "error");
   }
 
   function goNext() {
+    setShowResult(false);
     setQuestionDone(false);
     const nextIndex = currentIndex + 1;
     if (maxQuestions != null && nextIndex >= maxQuestions) {
@@ -428,16 +432,29 @@ export default function Module1Game() {
       <View style={{ height: 40 }} />
     </ScrollView>
 
-    <Modal visible={questionDone} transparent animationType="fade">
-      <View
+    {questionDone && (
+      <View style={{ position: "absolute", bottom: 20, alignSelf: "center", zIndex: 20 }}>
+        <ZenButton title="Question suivante" onPress={goNext} />
+      </View>
+    )}
+
+    {showResult && (
+      <Pressable
+        onPress={() => setShowResult(false)}
         style={{
-          flex: 1,
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
           backgroundColor: "rgba(0,0,0,0.5)",
           alignItems: "center",
           justifyContent: "center",
+          zIndex: 10,
         }}
       >
-        <View
+        <Pressable
+          onPress={(e) => e.stopPropagation()}
           style={{
             backgroundColor: colors.card,
             borderRadius: 16,
@@ -448,12 +465,18 @@ export default function Module1Game() {
             gap: 12,
           }}
         >
+          <Pressable
+            onPress={() => setShowResult(false)}
+            style={{ position: "absolute", top: 8, right: 8 }}
+          >
+            <Text style={{ fontSize: tx(18), color: colors.text }}>✕</Text>
+          </Pressable>
           {feedback.map((m, i) => (
             <Text key={i} style={{ fontSize: tx(14), color: colors.text }}>
               • {m}
             </Text>
           ))}
-          <View style={{ flexDirection: "row", justifyContent: "center", gap: 12, marginTop: 8 }}>
+          <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 8 }}>
             <Pressable
               onPress={onPressAudio}
               disabled={audioDisabled}
@@ -471,11 +494,10 @@ export default function Module1Game() {
             >
               <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
             </Pressable>
-            <ZenButton title="Question suivante" onPress={goNext} />
           </View>
-        </View>
-      </View>
-    </Modal>
+        </Pressable>
+      </Pressable>
+    )}
   </View>
   );
 }
