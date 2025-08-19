@@ -4,6 +4,7 @@ import { Alert, Pressable, View, Text } from "react-native";
 import { useTheme } from "../../../hooks/useTheme";
 import { loadWordsLocalOnly, type Word } from "../../../lib/data";
 import { canPlayRemoteAudio, getPlayableAudioSource, playAudioFileOrTTS } from "../../../lib/audio";
+import { StrokeFan } from "../../../components/StrokeFan";
 
 export default function WordDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -66,6 +67,7 @@ export default function WordDetail() {
         <Text style={{ fontSize: tx(64), color: colors.text, fontWeight: "700" }}>
           {word.hanzi}
         </Text>
+        <StrokeFan char={word.hanzi} />
         <Text style={{ fontSize: tx(24), color: colors.text }}>{word.pinyin}</Text>
         <Text style={{ fontSize: tx(20), color: colors.text }}>{word.fr}</Text>
         <Pressable
