@@ -107,7 +107,7 @@ export default function Module3Settings() {
         <Text style={{ fontSize: tx(16), fontWeight: "600", color: colors.text }}>Options Hanzi Writer</Text>
         <Pressable onPress={() => setShowOutline(o => !o)} style={{ flexDirection:"row", alignItems:"center", gap:10, paddingVertical:6 }}>
           <View style={{ width:20, height:20, borderRadius:4, borderWidth:2, borderColor: colors.border, backgroundColor: showOutline ? colors.accent : "transparent" }} />
-          <Text style={{ fontSize: tx(15), color: colors.text }}>Afficher le contour</Text>
+          <Text style={{ fontSize: tx(15), color: colors.text }}>Afficher le caractère</Text>
         </Pressable>
         <View style={{ gap:4 }}>
           <Text style={{ fontSize: tx(15), color: colors.text }}>Indice après erreurs</Text>
