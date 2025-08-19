@@ -476,21 +476,20 @@ export default function Module1Game() {
                 width: "30%" as const,
                 aspectRatio: 1,
                 borderRadius: 12,
-                borderWidth: selected ? 2 : 1,
-                borderColor: selected ? colors.text : colors.border,
+                borderWidth: 2,
                 alignItems: "center" as const,
                 justifyContent: "center" as const,
                 backgroundColor: colors.background,
               };
-              const solutionStyle = isSolution
-                ? { borderColor: colors.accent, borderWidth: 3, backgroundColor: colors.background }
-                : null;
+              let borderColor = colors.border;
+              if (selected) borderColor = colors.text;
+              if (isSolution) borderColor = colors.accent;
               return (
                 <Pressable
                   key={w.id}
                   onPress={() => !questionDone && setSelectedId(w.id)}
                   disabled={questionDone}
-                  style={[baseStyle, solutionStyle]}
+                  style={[baseStyle, { borderColor }]}
                 >
                   <Text style={{ fontSize: tx(36), fontWeight: "800", color: colors.text }}>
                     {w.hanzi}
