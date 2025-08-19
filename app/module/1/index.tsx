@@ -325,6 +325,9 @@ export default function Module1Game() {
       >
       {/* Header / hint type */}
       <View style={{ alignItems: "center", gap: 8 }}>
+        <Text style={{ fontSize: tx(16), fontWeight: "700", color: colors.text }}>
+          Question {currentIndex + 1}/{totalQuestions}
+        </Text>
         <Text
           style={{
             fontSize: tx(12),
