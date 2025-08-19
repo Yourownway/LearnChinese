@@ -20,6 +20,7 @@ export default function Module3Game() {
   const [words, setWords] = useState<Word[]>([]);
   const [index, setIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
     loadWordsLocalOnly()
@@ -47,17 +48,36 @@ export default function Module3Game() {
 
   function next() {
     if (index + 1 >= words.length) {
-      router.replace("/module/3/settings");
+      setFinished(true);
     } else {
       setIndex((i) => i + 1);
       setCompleted(false);
     }
   }
 
-  if (!current) {
+  if (!current && !finished) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
         <Text style={{ color: colors.text, fontSize: tx(16) }}>Chargement...</Text>
+      </View>
+    );
+  }
+
+  if (finished) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background, padding: 20 }}>
+        <Text
+          style={{
+            fontSize: tx(20),
+            fontWeight: "700",
+            color: colors.text,
+            textAlign: "center",
+            marginBottom: 20,
+          }}
+        >
+          Partie terminée !
+        </Text>
+        <ZenButton title="Retour aux paramètres" onPress={() => router.replace("/module/3/settings")} />
       </View>
     );
   }
@@ -98,7 +118,7 @@ export default function Module3Game() {
       </View>
       {completed && (
         <View style={{ marginTop: 12 }}>
-          <ZenButton title={index + 1 >= words.length ? "Terminer" : "Suivant"} onPress={next} />
+          <ZenButton title={index + 1 >= words.length ? "Terminer" : "Question suivante"} onPress={next} />
         </View>
       )}
     </View>
