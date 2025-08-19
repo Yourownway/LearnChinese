@@ -263,6 +263,7 @@ export default function Module2Dictionary() {
       renderItem={renderItem}
       ListHeaderComponent={renderHeader}
       stickyHeaderIndices={[0]}
+      keyboardShouldPersistTaps="handled"
       columnWrapperStyle={{ gap: 8 }}
       contentContainerStyle={{ padding: 8, gap: 8 }}
       style={{ flex: 1, backgroundColor: colors.background }}
