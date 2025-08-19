@@ -12,7 +12,7 @@ export default function Module1Settings() {
   const { colors, tx } = useTheme();
 
   const [words, setWords] = useState<Word[]>([]);
-  const [selectedSeries, setSelectedSeries] = useState<Array<number> | "all">("all");
+  const [selectedSeries, setSelectedSeries] = useState<number[] | "all">("all");
   const [maxQuestions, setMaxQuestions] = useState<number | null>(null);
   const [noRepeatHintType, setNoRepeatHintType] = useState<boolean>(true);
 
@@ -20,6 +20,8 @@ export default function Module1Settings() {
   const [allowHanzi, setAllowHanzi] = useState(true);
   const [allowPinyin, setAllowPinyin] = useState(true);
   const [allowTranslation, setAllowTranslation] = useState(true);
+
+  const activeTypeCount = [allowHanzi, allowPinyin, allowTranslation].filter(Boolean).length;
 
   const filteredWords = useMemo(() => {
     return selectedSeries === "all"
@@ -74,8 +76,8 @@ export default function Module1Settings() {
     if (allowHanzi) types.push("hanzi");
     if (allowPinyin) types.push("pinyin");
     if (allowTranslation) types.push("translation");
-    if (types.length === 0) {
-      Alert.alert("Types de questions", "Sélectionne au moins un type de question.");
+    if (types.length < 2) {
+      Alert.alert("Types de questions", "Sélectionne au moins deux types de question.");
       return;
     }
 
@@ -217,7 +219,13 @@ export default function Module1Settings() {
           Types de questions autorisés
         </Text>
         <Pressable
-          onPress={() => setAllowHanzi((v) => !v)}
+          onPress={() => {
+            if (allowHanzi && activeTypeCount <= 2) {
+              Alert.alert("Types de questions", "Sélectionne au moins deux types de question.");
+              return;
+            }
+            setAllowHanzi((v) => !v);
+          }}
           style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
         >
           <View
@@ -233,7 +241,13 @@ export default function Module1Settings() {
           <Text style={{ fontSize: tx(15), color: colors.text }}>汉字 uniquement</Text>
         </Pressable>
         <Pressable
-          onPress={() => setAllowPinyin((v) => !v)}
+          onPress={() => {
+            if (allowPinyin && activeTypeCount <= 2) {
+              Alert.alert("Types de questions", "Sélectionne au moins deux types de question.");
+              return;
+            }
+            setAllowPinyin((v) => !v);
+          }}
           style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
         >
           <View
@@ -249,7 +263,13 @@ export default function Module1Settings() {
           <Text style={{ fontSize: tx(15), color: colors.text }}>Pinyin</Text>
         </Pressable>
         <Pressable
-          onPress={() => setAllowTranslation((v) => !v)}
+          onPress={() => {
+            if (allowTranslation && activeTypeCount <= 2) {
+              Alert.alert("Types de questions", "Sélectionne au moins deux types de question.");
+              return;
+            }
+            setAllowTranslation((v) => !v);
+          }}
           style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
         >
           <View
@@ -265,7 +285,7 @@ export default function Module1Settings() {
           <Text style={{ fontSize: tx(15), color: colors.text }}>Traduction FR</Text>
         </Pressable>
         <Text style={{ fontSize: tx(12), color: colors.muted }}>
-          Par défaut : les trois activés.
+          Par défaut : les trois activés (minimum deux).
         </Text>
       </View>
 
