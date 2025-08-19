@@ -82,8 +82,8 @@ export default function HomeScreen() {
 
       {/* Actions */}
       <View style={styles.actions}>
-        <ZenButton title="Révisions" onPress={go("/module/1/settings")} />
-        <ZenButton title="Cours" onPress={go("/module/2", "Bravo !")} />
+        <ZenButton title="Cours" onPress={go("/module/4")} />
+        <ZenButton title="Dictionnaire" onPress={go("/module/2", "Bravo !")} />
         <ZenButton title="Exercices" onPress={go("/module/1/settings", "Dommage…")} />
         <ZenButton title="Progression" onPress={go("/module/3")} />
       </View>

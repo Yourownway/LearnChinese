@@ -13,7 +13,6 @@ const COLUMN_OPTIONS = [2, 3, 4, 5, 6] as const;
 type ColumnCount = typeof COLUMN_OPTIONS[number];
 
 type SortOrder = "asc" | "desc";
-
 type SeriesSelection = number[] | "all";
 
 export default function Module2Dictionary() {
@@ -58,7 +57,8 @@ export default function Module2Dictionary() {
   }, [filtered, query, displayPref]);
 
   const sorted = useMemo(() => {
-    const key = displayPref === "hanzi" ? "hanzi" : displayPref === "fr" ? "fr" : "pinyin";
+    const key =
+      displayPref === "hanzi" ? "hanzi" : displayPref === "fr" ? "fr" : "pinyin";
     return [...searched].sort((a, b) => {
       const aVal = (a as any)[key] as string;
       const bVal = (b as any)[key] as string;
@@ -118,15 +118,18 @@ export default function Module2Dictionary() {
           fontSize: tx(14),
         }}
       />
+
       {/* Sorting + display preference */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <Pressable onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+        <Pressable
+          onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
           style={{ padding: 6 }}
         >
           <Text style={{ color: colors.text, fontSize: tx(14) }}>
             Tri {sortOrder === "asc" ? "A→Z" : "Z→A"}
           </Text>
         </Pressable>
+
         <View style={{ flexDirection: "row", gap: 8 }}>
           {DISPLAY_OPTIONS.map((opt) => {
             const active = displayPref === opt;
@@ -198,6 +201,7 @@ export default function Module2Dictionary() {
             Toutes
           </Text>
         </Pressable>
+
         {seriesOptions.map((s) => {
           const active = selectedSeries !== "all" && selectedSeries.includes(s);
           return (
@@ -226,7 +230,9 @@ export default function Module2Dictionary() {
     const scale = 4 / columns;
     return (
       <Pressable
-        onPress={() => router.push({ pathname: "/module/2/[id]", params: { id: item.id } })}
+        onPress={() =>
+          router.push({ pathname: "/module/2/[id]", params: { id: item.id } })
+        }
         style={{ flex: 1, padding: 6 }}
       >
         <View
@@ -255,17 +261,19 @@ export default function Module2Dictionary() {
   };
 
   return (
-    <FlatList
-      data={sorted}
-      keyExtractor={(item) => item.id}
-      numColumns={columns}
-      key={columns}
-      renderItem={renderItem}
-      ListHeaderComponent={renderHeader}
-      stickyHeaderIndices={[0]}
-      columnWrapperStyle={{ gap: 8 }}
-      contentContainerStyle={{ padding: 8, gap: 8 }}
-      style={{ flex: 1, backgroundColor: colors.background }}
-    />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {renderHeader()}
+      <FlatList
+        data={sorted}
+        keyExtractor={(item) => item.id}
+        numColumns={columns}
+        key={columns}
+        renderItem={renderItem}
+        keyboardShouldPersistTaps="always" 
+        columnWrapperStyle={{ gap: 8 }}
+        contentContainerStyle={{ padding: 8, gap: 8 }}
+        style={{ flex: 1 }}
+      />
+    </View>
   );
 }
