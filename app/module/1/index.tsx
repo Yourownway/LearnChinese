@@ -62,19 +62,19 @@ export default function Module1Game() {
 
   const noRepeatHintType = params.noRepeatHintType === "1";
 
-  // answer element from settings
-  const answerType: AnswerMode = useMemo(() => {
+  // answer element from settings (optional)
+  const answerType = useMemo<AnswerMode | null>(() => {
     const a = params.answer;
     if (a === "hanzi" || a === "pinyin" || a === "translation") return a;
-    return "translation";
+    return null;
   }, [params.answer]);
 
-  // allowed hint types from settings (cannot include answerType)
+  // allowed hint types from settings (exclude answerType if provided)
   const allowedTypes: HintMode[] = useMemo(() => {
     const raw = (params.types ?? "hanzi,pinyin,translation").split(",").map(s => s.trim()).filter(Boolean);
     const valid = new Set<HintMode>(["hanzi", "pinyin", "translation"]);
-    const arr = raw.filter((v): v is HintMode => valid.has(v as HintMode) && v !== answerType);
-    const defaults = ["hanzi", "pinyin", "translation"].filter(t => t !== answerType) as HintMode[];
+    const arr = raw.filter((v): v is HintMode => valid.has(v as HintMode) && (!answerType || v !== answerType));
+    const defaults = ["hanzi", "pinyin", "translation"].filter(t => !answerType || t !== answerType) as HintMode[];
     return arr.length ? arr : defaults;
   }, [params.types, answerType]);
 
@@ -158,31 +158,80 @@ export default function Module1Game() {
     const messages: string[] = [];
     let correct = true;
 
-    if (answerType === "translation") {
-      const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
-      if (!frOK) {
-        correct = false;
-        messages.push(`Traduction attendue : "${formatFr(current.fr)}"`);
+    if (answerType) {
+      if (answerType === "translation") {
+        const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
+        if (!frOK) {
+          correct = false;
+          messages.push(`Traduction attendue : "${formatFr(current.fr)}"`);
+        }
       }
-    }
 
-    if (answerType === "pinyin") {
-      const { ok: pinOK, accentWarning, missingTones, corrected } =
-        isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
-      if (!pinOK) {
-        correct = false;
-        if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
-        messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
-      } else if (accentWarning) {
-        messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+      if (answerType === "pinyin") {
+        const { ok: pinOK, accentWarning, missingTones, corrected } =
+          isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
+        if (!pinOK) {
+          correct = false;
+          if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
+          messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+        } else if (accentWarning) {
+          messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+        }
       }
-    }
 
-    if (answerType === "hanzi") {
-      const isAccepted = selectedId != null && acceptedIds.has(selectedId);
-      if (!isAccepted) {
-        correct = false;
-        messages.push("Mauvais caractère choisi.");
+      if (answerType === "hanzi") {
+        const isAccepted = selectedId != null && acceptedIds.has(selectedId);
+        if (!isAccepted) {
+          correct = false;
+          messages.push("Mauvais caractère choisi.");
+        }
+      }
+    } else {
+      if (hintType === "hanzi") {
+        const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
+        if (!frOK) {
+          correct = false;
+          messages.push(`Traduction attendue : "${formatFr(current.fr)}"`);
+        }
+        const { ok: pinOK, accentWarning, missingTones, corrected } =
+          isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
+        if (!pinOK) {
+          correct = false;
+          if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
+          messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+        } else if (accentWarning) {
+          messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+        }
+      }
+
+      if (hintType === "pinyin") {
+        const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
+        if (!frOK) {
+          correct = false;
+          messages.push(`Traduction attendue : "${formatFr(current.fr)}"`);
+        }
+        const isAccepted = selectedId != null && acceptedIds.has(selectedId);
+        if (!isAccepted) {
+          correct = false;
+          messages.push("Mauvais caractère choisi.");
+        }
+      }
+
+      if (hintType === "translation") {
+        const { ok: pinOK, accentWarning, missingTones, corrected } =
+          isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
+        if (!pinOK) {
+          correct = false;
+          if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
+          messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+        } else if (accentWarning) {
+          messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+        }
+        const isAccepted = selectedId != null && acceptedIds.has(selectedId);
+        if (!isAccepted) {
+          correct = false;
+          messages.push("Mauvais caractère choisi.");
+        }
       }
     }
 
@@ -382,7 +431,9 @@ export default function Module1Game() {
       </View>
 
   {/* FR block (FauxTextarea + input) */}
-  {answerType === "translation" && (
+  {(answerType
+    ? answerType === "translation"
+    : hintType === "hanzi" || hintType === "pinyin") && (
     <View
       style={{
         backgroundColor: colors.card,
@@ -416,7 +467,9 @@ export default function Module1Game() {
       )}
 
   {/* Pinyin block (FauxTextarea + input) */}
-  {answerType === "pinyin" && (
+  {(answerType
+    ? answerType === "pinyin"
+    : hintType === "hanzi" || hintType === "translation") && (
     <View
       style={{
         backgroundColor: colors.card,
@@ -454,7 +507,9 @@ export default function Module1Game() {
       )}
 
   {/* Choice tiles */}
-  {answerType === "hanzi" && (
+  {(answerType
+    ? answerType === "hanzi"
+    : hintType === "pinyin" || hintType === "translation") && (
     <View
       style={{
         backgroundColor: colors.card,
