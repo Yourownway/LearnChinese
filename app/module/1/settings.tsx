@@ -12,7 +12,7 @@ export default function Module1Settings() {
   const { colors, tx } = useTheme();
 
   const [words, setWords] = useState<Word[]>([]);
-  const [selectedSeries, setSelectedSeries] = useState<Array<number> | "all">("all");
+  const [selectedSeries, setSelectedSeries] = useState<number[] | "all">("all");
   const [maxQuestions, setMaxQuestions] = useState<number | null>(null);
   const [noRepeatHintType, setNoRepeatHintType] = useState<boolean>(true);
 
@@ -20,6 +20,17 @@ export default function Module1Settings() {
   const [allowHanzi, setAllowHanzi] = useState(true);
   const [allowPinyin, setAllowPinyin] = useState(true);
   const [allowTranslation, setAllowTranslation] = useState(true);
+
+  // Answer element (user will provide this element)
+  type ElementType = "hanzi" | "pinyin" | "translation";
+  const [answerType, setAnswerType] = useState<ElementType>("translation");
+
+  // Whenever answerType changes, ensure corresponding question type is disabled
+  useEffect(() => {
+    if (answerType === "hanzi") setAllowHanzi(false);
+    if (answerType === "pinyin") setAllowPinyin(false);
+    if (answerType === "translation") setAllowTranslation(false);
+  }, [answerType]);
 
   const filteredWords = useMemo(() => {
     return selectedSeries === "all"
@@ -87,6 +98,7 @@ export default function Module1Settings() {
         maxQuestions: String(max),
         noRepeatHintType: noRepeatHintType ? "1" : "0",
         types: types.join(","),
+        answer: answerType,
       },
     });
   }
@@ -202,6 +214,73 @@ export default function Module1Settings() {
         <Switch value={noRepeatHintType} onValueChange={setNoRepeatHintType} />
       </View>
 
+      {/* Answer element */}
+      <View
+        style={{
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: 12,
+          gap: 8,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+      >
+        <Text style={{ fontSize: tx(16), fontWeight: "600", color: colors.text }}>
+          Élément de réponse attendu
+        </Text>
+        <Pressable
+          onPress={() => setAnswerType("translation")}
+          style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
+        >
+          <View
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 4,
+              borderWidth: 2,
+              borderColor: colors.border,
+              backgroundColor: answerType === "translation" ? colors.accent : "transparent",
+            }}
+          />
+          <Text style={{ fontSize: tx(15), color: colors.text }}>Traduction FR</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setAnswerType("pinyin")}
+          style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
+        >
+          <View
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 4,
+              borderWidth: 2,
+              borderColor: colors.border,
+              backgroundColor: answerType === "pinyin" ? colors.accent : "transparent",
+            }}
+          />
+          <Text style={{ fontSize: tx(15), color: colors.text }}>Pinyin</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setAnswerType("hanzi")}
+          style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
+        >
+          <View
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 4,
+              borderWidth: 2,
+              borderColor: colors.border,
+              backgroundColor: answerType === "hanzi" ? colors.accent : "transparent",
+            }}
+          />
+          <Text style={{ fontSize: tx(15), color: colors.text }}>汉字 (choix)</Text>
+        </Pressable>
+        <Text style={{ fontSize: tx(12), color: colors.muted }}>
+          L’élément choisi ne pourra pas être utilisé comme indice.
+        </Text>
+      </View>
+
       {/* Types de questions */}
       <View
         style={{
@@ -218,7 +297,14 @@ export default function Module1Settings() {
         </Text>
         <Pressable
           onPress={() => setAllowHanzi((v) => !v)}
-          style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
+          disabled={answerType === "hanzi"}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            paddingVertical: 6,
+            opacity: answerType === "hanzi" ? 0.4 : 1,
+          }}
         >
           <View
             style={{
@@ -234,7 +320,14 @@ export default function Module1Settings() {
         </Pressable>
         <Pressable
           onPress={() => setAllowPinyin((v) => !v)}
-          style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
+          disabled={answerType === "pinyin"}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            paddingVertical: 6,
+            opacity: answerType === "pinyin" ? 0.4 : 1,
+          }}
         >
           <View
             style={{
@@ -250,7 +343,14 @@ export default function Module1Settings() {
         </Pressable>
         <Pressable
           onPress={() => setAllowTranslation((v) => !v)}
-          style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 }}
+          disabled={answerType === "translation"}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            paddingVertical: 6,
+            opacity: answerType === "translation" ? 0.4 : 1,
+          }}
         >
           <View
             style={{
@@ -265,7 +365,7 @@ export default function Module1Settings() {
           <Text style={{ fontSize: tx(15), color: colors.text }}>Traduction FR</Text>
         </Pressable>
         <Text style={{ fontSize: tx(12), color: colors.muted }}>
-          Par défaut : les trois activés.
+          Par défaut : tous les indices sauf l’élément de réponse choisi.
         </Text>
       </View>
 
