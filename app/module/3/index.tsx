@@ -66,6 +66,17 @@ export default function Module3Game() {
     <View style={{ flex: 1, backgroundColor: colors.background, padding: 20 }}>
       <Text
         style={{
+          fontSize: tx(16),
+          fontWeight: "700",
+          color: colors.text,
+          textAlign: "center",
+          marginBottom: 4,
+        }}
+      >
+        Question {index + 1}/{words.length}
+      </Text>
+      <Text
+        style={{
           fontSize: tx(18),
           fontWeight: "700",
           color: colors.text,
@@ -77,6 +88,13 @@ export default function Module3Game() {
       </Text>
       <View style={{ flex: 1 }}>
         <HanziWriterQuiz char={current.hanzi} onComplete={handleComplete} />
+      </View>
+      <View style={{ marginTop: 12 }}>
+        <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>{current.pinyin}</Text>
+        <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>{current.fr}</Text>
+        {current.frDetails && (
+          <Text style={{ color: colors.text, fontSize: tx(14), textAlign: "center" }}>{current.frDetails}</Text>
+        )}
       </View>
       {completed && (
         <View style={{ marginTop: 12 }}>
