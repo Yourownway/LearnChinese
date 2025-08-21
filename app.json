@@ -47,8 +47,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "b142b5fe-2dba-4f38-8694-581acb703327"
+        "projectId": "49e34367-62e1-478f-b0c8-492c032231d8"
       }
-    }
+    },
+    "owner": "lorrisfr"
   }
 }
