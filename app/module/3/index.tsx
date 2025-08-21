@@ -1,10 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
-import {
-  HanziWriterQuiz,
-  type HanziWriterQuizHandle,
-} from "../../../components/HanziWriterQuiz";
+import { Alert, Text, View } from "react-native";
+import { HanziWriterQuiz } from "../../../components/HanziWriterQuiz";
 import { ZenButton } from "../../../components/ZenButton";
 import { useTheme } from "../../../hooks/useTheme";
 import { loadWordsLocalOnly, type Word } from "../../../lib/data";
@@ -17,8 +14,6 @@ type Params = {
   showHintAfterMisses?: string;
   scoreMode?: string;
   maxHints?: string;
-  showPinyin?: string;
-  showTranslation?: string;
 };
 
 export default function Module3Game() {
@@ -32,7 +27,6 @@ export default function Module3Game() {
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
   const questionLost = useRef(false);
-  const quizRef = useRef<HanziWriterQuizHandle>(null);
 
   useEffect(() => {
     loadWordsLocalOnly()
@@ -58,8 +52,6 @@ export default function Module3Game() {
   const showHintAfterMisses = params.showHintAfterMisses ? Number(params.showHintAfterMisses) : 3;
   const scoreMode = params.scoreMode === "1";
   const maxHints = params.maxHints ? Number(params.maxHints) : 3;
-  const showPinyin = params.showPinyin !== "0";
-  const showTranslation = params.showTranslation !== "0";
 
   function handleComplete() {
     if (scoreMode && !questionLost.current) {
@@ -74,18 +66,6 @@ export default function Module3Game() {
       questionLost.current = true;
       setCompleted(true);
     }
-  }
-
-  function showSolution() {
-    quizRef.current?.showSolution();
-    questionLost.current = true;
-    setCompleted(true);
-  }
-
-  function restart() {
-    quizRef.current?.restart();
-    questionLost.current = false;
-    setCompleted(false);
   }
 
   function next() {
@@ -154,37 +134,19 @@ export default function Module3Game() {
       >
         Question {index + 1}/{words.length}
       </Text>
-      <View style={{ marginBottom: 10 }}>
-        <Text
-          style={{
-            fontSize: tx(18),
-            fontWeight: "700",
-            color: colors.text,
-            textAlign: "center",
-            marginBottom: 4,
-          }}
-        >
-          Écris le caractère
-        </Text>
-        {showPinyin && (
-          <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>
-            {current.pinyin}
-          </Text>
-        )}
-        {showTranslation && (
-          <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>
-            {current.fr}
-          </Text>
-        )}
-        {showTranslation && current.frDetails && (
-          <Text style={{ color: colors.text, fontSize: tx(14), textAlign: "center" }}>
-            {current.frDetails}
-          </Text>
-        )}
-      </View>
+      <Text
+        style={{
+          fontSize: tx(18),
+          fontWeight: "700",
+          color: colors.text,
+          textAlign: "center",
+          marginBottom: 10,
+        }}
+      >
+        Écris le caractère
+      </Text>
       <View style={{ flex: 1 }}>
         <HanziWriterQuiz
-          ref={quizRef}
           char={current.hanzi}
           showOutline={showOutline}
           showHintAfterMisses={showHintAfterMisses}
@@ -193,40 +155,12 @@ export default function Module3Game() {
           onFail={handleFail}
         />
       </View>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          gap: 12,
-          marginTop: 12,
-        }}
-      >
-        <Pressable
-          onPress={showSolution}
-          style={{
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: colors.card,
-          }}
-        >
-          <Text style={{ color: colors.text, fontSize: tx(14) }}>Solution</Text>
-        </Pressable>
-        <Pressable
-          onPress={restart}
-          style={{
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: colors.card,
-          }}
-        >
-          <Text style={{ color: colors.text, fontSize: tx(14) }}>Recommencer</Text>
-        </Pressable>
+      <View style={{ marginTop: 12 }}>
+        <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>{current.pinyin}</Text>
+        <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>{current.fr}</Text>
+        {current.frDetails && (
+          <Text style={{ color: colors.text, fontSize: tx(14), textAlign: "center" }}>{current.frDetails}</Text>
+        )}
       </View>
       {completed && (
         <View style={{ marginTop: 12 }}>

@@ -1,16 +1,6 @@
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-} from "react";
+import React, { useMemo } from "react";
 import { useWindowDimensions } from "react-native";
 import { WebView } from "react-native-webview";
-
-export interface HanziWriterQuizHandle {
-  showSolution: () => void;
-  restart: () => void;
-}
 
 interface Props {
   char: string;
@@ -26,36 +16,18 @@ interface Props {
   onFail?: () => void;
 }
 
-export const HanziWriterQuiz = forwardRef<HanziWriterQuizHandle, Props>(
-  (
-    {
-      char,
-      // défauts “agréables” à l’usage
-      zoom = 2.7,
-      showGrid = "book",
-      showOutline = true,
-      showHintAfterMisses = 3,
-      maxMistakes,
-      onComplete,
-      onFail,
-    }: Props,
-    ref
-  ) => {
-    const { width } = useWindowDimensions();
-    const webRef = useRef<WebView>(null);
-
-    useImperativeHandle(ref, () => ({
-      showSolution() {
-        webRef.current?.injectJavaScript(
-          "window.showSolution && window.showSolution(); true;"
-        );
-      },
-      restart() {
-        webRef.current?.injectJavaScript(
-          "window.restartQuiz && window.restartQuiz(); true;"
-        );
-      },
-    }));
+export function HanziWriterQuiz({
+  char,
+  // défauts “agréables” à l’usage
+  zoom = 2.7,
+  showGrid = "book",
+  showOutline = true,
+  showHintAfterMisses = 3,
+  maxMistakes,
+  onComplete,
+  onFail,
+}: Props) {
+  const { width } = useWindowDimensions();
 
   // Taille visible (responsive = mise en page adaptative)
   const displaySize = Math.min(width * 0.9, 350);
@@ -88,8 +60,11 @@ export const HanziWriterQuiz = forwardRef<HanziWriterQuizHandle, Props>(
     return "";
   }, [showGrid, internalSize]);
 
-    const html = useMemo(
-      () => `
+  const delayBetweenStrokes = 100;
+  const strokeAnimationSpeed = 0.7;
+
+  const html = useMemo(
+    () => `
     <!DOCTYPE html>
     <html>
       <head>
@@ -145,63 +120,54 @@ export const HanziWriterQuiz = forwardRef<HanziWriterQuizHandle, Props>(
             showCharacter: false,
             showOutline: ${showOutline},
             showHintAfterMisses: ${showHintAfterMisses},
+            delayBetweenStrokes: ${delayBetweenStrokes},
+            strokeAnimationSpeed: ${strokeAnimationSpeed},
             highlightOnComplete: false,
             padding: 0
           });
 
-          function startQuiz() {
-            misses = 0;
-            writer.hideCharacter();
-            writer.quiz({
-              onMistake: function() {
-                misses++;
-                if (MAX_MISTAKES && misses >= MAX_MISTAKES) {
-                  window.ReactNativeWebView.postMessage('fail');
-                }
-              },
-              onComplete: function() {
-                window.ReactNativeWebView.postMessage('complete');
+          writer.quiz({
+            onMistake: function() {
+              misses++;
+              if (MAX_MISTAKES && misses >= MAX_MISTAKES) {
+                window.ReactNativeWebView.postMessage('fail');
               }
-            });
-          }
-
-          startQuiz();
-          window.restartQuiz = startQuiz;
-          window.showSolution = function() {
-            var prevSpeed = writer._options.strokeAnimationSpeed;
-            var prevDelay = writer._options.delayBetweenStrokes;
-            writer._options.strokeAnimationSpeed = prevSpeed * 2;
-            writer._options.delayBetweenStrokes = prevDelay / 2;
-            writer.animateCharacter();
-            writer._options.strokeAnimationSpeed = prevSpeed;
-            writer._options.delayBetweenStrokes = prevDelay;
-          };
+            },
+            onComplete: function() {
+              window.ReactNativeWebView.postMessage('complete');
+            }
+          });
         </script>
       </body>
     </html>
   `,
-      [char, internalSize, gridSvg, showOutline, showHintAfterMisses, maxMistakes]
-    );
+    [
+      char,
+      internalSize,
+      gridSvg,
+      showOutline,
+      showHintAfterMisses,
+      maxMistakes,
+      delayBetweenStrokes,
+      strokeAnimationSpeed,
+    ]
+  );
 
-    return (
-      <WebView
-        ref={webRef}
-        originWhitelist={["*"]}
-        source={{ html }}
-        onMessage={(e) => {
-          if (e.nativeEvent.data === "complete") onComplete?.();
-          else if (e.nativeEvent.data === "fail") onFail?.();
-        }}
-        scrollEnabled={false}
-        style={{
-          backgroundColor: "transparent",
-          width: displaySize,
-          height: displaySize,
-          alignSelf: "center",
-        }}
-      />
-    );
-  }
-);
-
-HanziWriterQuiz.displayName = "HanziWriterQuiz";
+  return (
+    <WebView
+      originWhitelist={["*"]}
+      source={{ html }}
+      onMessage={(e) => {
+        if (e.nativeEvent.data === "complete") onComplete?.();
+        else if (e.nativeEvent.data === "fail") onFail?.();
+      }}
+      scrollEnabled={false}
+      style={{
+        backgroundColor: "transparent",
+        width: displaySize,
+        height: displaySize,
+        alignSelf: "center",
+      }}
+    />
+  );
+}
