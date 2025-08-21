@@ -245,6 +245,11 @@ export default function Module3Game() {
             {current.pinyin}
           </Text>
         )}
+        {showPinyin && current.pinyinDetails && (
+          <Text style={{ color: colors.text, fontSize: tx(14), textAlign: "center" }}>
+            {current.pinyinDetails}
+          </Text>
+        )}
         {showTranslation && (
           <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>
             {current.fr}

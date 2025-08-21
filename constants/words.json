@@ -17,8 +17,8 @@
   { "id": "16", "series": 2, "hanzi": "人", "pinyin": "rén", "numeric": "ren2", "fr": "personne" },
   { "id": "17", "series": 2, "hanzi": "日", "pinyin": "rì", "numeric": "ri4", "fr": "soleil/jour" },
   { "id": "18", "series": 2, "hanzi": "是", "pinyin": "shì", "numeric": "shi4", "fr": "être" },
-  { "id": "19", "series": 2, "hanzi": "他", "pinyin": "tā","pinyinDetail":"masculin", "numeric": "ta1", "fr": "il" },
-  { "id": "20", "series": 2, "hanzi": "她", "pinyin": "tā","pinyinDetail":"feminin", "numeric": "ta1", "fr": "elle" },
+  { "id": "19", "series": 2, "hanzi": "他", "pinyin": "tā", "pinyinDetails": "masculin", "numeric": "ta1", "fr": "il" },
+  { "id": "20", "series": 2, "hanzi": "她", "pinyin": "tā", "pinyinDetails": "feminin", "numeric": "ta1", "fr": "elle" },
   { "id": "21", "series": 2, "hanzi": "姓", "pinyin": "xìng", "numeric": "xing4", "fr": "nom","frDetails":"de famille" },
   { "id": "22", "series": 2, "hanzi": "中", "pinyin": "zhōng", "numeric": "zhong1", "fr": "milieu" },
   { "id": "23", "series": 2, "hanzi": "字", "pinyin": "zì", "numeric": "zi4", "fr": "caractère" }

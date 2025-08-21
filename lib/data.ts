@@ -6,6 +6,7 @@ export type Word = {
   hanzi: string;
   pinyin: string;   // with tones
   numeric: string;  //  ni3 hao3
+  pinyinDetails?: string;
   fr: string;
   frDetails?: string;
   audioUrl?: string;
