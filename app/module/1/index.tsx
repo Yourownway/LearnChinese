@@ -449,6 +449,12 @@ export default function Module1Game() {
           </Text>
         )}
 
+        {hintType === "pinyin" && current.pinyinDetails && (
+          <Text style={{ marginTop: 4, fontSize: tx(16), color: colors.muted }}>
+            {current.pinyinDetails}
+          </Text>
+        )}
+
         {hintType === "pinyin" && !questionDone && (
           <Pressable
             onPress={onPressAudio}
