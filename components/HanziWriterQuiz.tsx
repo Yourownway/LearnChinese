@@ -157,8 +157,9 @@ function HanziWriterQuizInner(
 
           startQuiz();
 
-          document.addEventListener('message', function(e) {
+          function handleMessage(e) {
             if (e.data === 'solution') {
+              writer.hideCharacter();
               writer.updateOptions({
                 delayBetweenStrokes: ${delayBetweenStrokes} / 2,
                 strokeAnimationSpeed: ${strokeAnimationSpeed} * 2,
@@ -175,7 +176,9 @@ function HanziWriterQuizInner(
               writer.hideCharacter();
               startQuiz();
             }
-          });
+          }
+          document.addEventListener('message', handleMessage);
+          window.addEventListener('message', handleMessage);
           <\/script>
       </body>
     </html>
