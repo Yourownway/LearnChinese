@@ -27,6 +27,13 @@ export default function Module3Settings() {
       .catch(() => Alert.alert("Erreur", "Impossible de charger les mots."));
   }, []);
 
+  // Ensure at least one info (pinyin or translation) is displayed
+  useEffect(() => {
+    if (!showPinyin && !showTranslation) {
+      setShowTranslation(true);
+    }
+  }, [showPinyin, showTranslation]);
+
   const series = useMemo<SeriesOption[]>(() => {
     const set = new Set<number>();
     words.forEach(w => typeof w.series === "number" && set.add(w.series));

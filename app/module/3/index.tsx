@@ -193,6 +193,19 @@ export default function Module3Game() {
           onFail={handleFail}
         />
       </View>
+      {completed && (
+        <Text
+          style={{
+            textAlign: "center",
+            color: questionLost.current ? colors.text : colors.accent,
+            fontSize: tx(16),
+            marginTop: 12,
+            marginBottom: 8,
+          }}
+        >
+          {questionLost.current ? "Dommage..." : "Bravo !"}
+        </Text>
+      )}
       <View
         style={{
           flexDirection: "row",
@@ -214,25 +227,29 @@ export default function Module3Game() {
         >
           <Text style={{ color: colors.text, fontSize: tx(14) }}>Solution</Text>
         </Pressable>
-        <Pressable
-          onPress={restart}
-          style={{
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: colors.card,
-          }}
-        >
-          <Text style={{ color: colors.text, fontSize: tx(14) }}>Recommencer</Text>
-        </Pressable>
+        {!scoreMode && (
+          <Pressable
+            onPress={restart}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.card,
+            }}
+          >
+            <Text style={{ color: colors.text, fontSize: tx(14) }}>Recommencer</Text>
+          </Pressable>
+        )}
       </View>
-      {completed && (
-        <View style={{ marginTop: 12 }}>
-          <ZenButton title={index + 1 >= words.length ? "Terminer" : "Question suivante"} onPress={next} />
-        </View>
-      )}
+      <View style={{ marginTop: 12 }}>
+        <ZenButton
+          title={index + 1 >= words.length ? "Terminer" : "Question suivante"}
+          onPress={next}
+          disabled={!completed}
+        />
+      </View>
     </View>
   );
 }
