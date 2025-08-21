@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { FauxTextarea } from "../../../components/FauxTextarea";
 import { useToast } from "../../../components/Toast";
 import { ZenButton } from "../../../components/ZenButton";
@@ -18,6 +19,8 @@ type GameParams = {
   noRepeatHintType?: "0" | "1"; // from settings
   types?: string;               // "hanzi,pinyin,translation" for hints
   answer?: string;              // expected answer element
+  pinyinMode?: "input" | "choice";
+  frMode?: "input" | "choice";
 };
 
 export default function Module1Game() {
@@ -38,6 +41,8 @@ export default function Module1Game() {
   const [inputFR, setInputFR] = useState("");
   const [inputPinyin, setInputPinyin] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedFrId, setSelectedFrId] = useState<string | null>(null);
+  const [selectedPinyinId, setSelectedPinyinId] = useState<string | null>(null);
 
   // per-question
   const [hintType, setHintType] = useState<HintMode>("hanzi");
@@ -46,6 +51,7 @@ export default function Module1Game() {
   const [questionDone, setQuestionDone] = useState(false);
   const [feedback, setFeedback] = useState<string[]>([]);
   const [showResult, setShowResult] = useState(false);
+  const [showToneInfo, setShowToneInfo] = useState(false);
 
   const maxQuestionsParam = useMemo(() => {
     const raw = params.maxQuestions ?? "";
@@ -61,6 +67,10 @@ export default function Module1Game() {
   const totalQuestions = maxQ ?? filtered.length;
 
   const noRepeatHintType = params.noRepeatHintType === "1";
+
+  // answer modes
+  const pinyinMode = params.pinyinMode === "choice" ? "choice" : "input";
+  const frMode = params.frMode === "choice" ? "choice" : "input";
 
   // answer element from settings (optional)
   const answerType = useMemo<AnswerMode | null>(() => {
@@ -145,6 +155,8 @@ export default function Module1Game() {
     setInputFR("");
     setInputPinyin("");
     setSelectedId(null);
+    setSelectedFrId(null);
+    setSelectedPinyinId(null);
     setQuestionDone(false);
     setFeedback([]);
     setShowResult(false);
@@ -160,7 +172,9 @@ export default function Module1Game() {
 
     if (answerType) {
       if (answerType === "translation") {
-        const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
+        const frOK = frMode === "choice"
+          ? selectedFrId === current.id
+          : isFrenchAnswerCorrect(inputFR, current.fr);
         if (!frOK) {
           correct = false;
           messages.push(`Traduction attendue : "${formatFr(current.fr)}"`);
@@ -168,14 +182,22 @@ export default function Module1Game() {
       }
 
       if (answerType === "pinyin") {
-        const { ok: pinOK, accentWarning, missingTones, corrected } =
-          isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
-        if (!pinOK) {
-          correct = false;
-          if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
-          messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
-        } else if (accentWarning) {
-          messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+        if (pinyinMode === "choice") {
+          const pinOK = selectedPinyinId != null && acceptedIds.has(selectedPinyinId);
+          if (!pinOK) {
+            correct = false;
+            messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+          }
+        } else {
+          const { ok: pinOK, accentWarning, missingTones, corrected } =
+            isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
+          if (!pinOK) {
+            correct = false;
+            if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
+            messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+          } else if (accentWarning) {
+            messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+          }
         }
       }
 
@@ -188,24 +210,36 @@ export default function Module1Game() {
       }
     } else {
       if (hintType === "hanzi") {
-        const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
+        const frOK = frMode === "choice"
+          ? selectedFrId === current.id
+          : isFrenchAnswerCorrect(inputFR, current.fr);
         if (!frOK) {
           correct = false;
           messages.push(`Traduction attendue : "${formatFr(current.fr)}"`);
         }
-        const { ok: pinOK, accentWarning, missingTones, corrected } =
-          isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
-        if (!pinOK) {
-          correct = false;
-          if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
-          messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
-        } else if (accentWarning) {
-          messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+        if (pinyinMode === "choice") {
+          const pinOK = selectedPinyinId != null && acceptedIds.has(selectedPinyinId);
+          if (!pinOK) {
+            correct = false;
+            messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+          }
+        } else {
+          const { ok: pinOK, accentWarning, missingTones, corrected } =
+            isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
+          if (!pinOK) {
+            correct = false;
+            if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
+            messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+          } else if (accentWarning) {
+            messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+          }
         }
       }
 
       if (hintType === "pinyin") {
-        const frOK = isFrenchAnswerCorrect(inputFR, current.fr);
+        const frOK = frMode === "choice"
+          ? selectedFrId === current.id
+          : isFrenchAnswerCorrect(inputFR, current.fr);
         if (!frOK) {
           correct = false;
           messages.push(`Traduction attendue : "${formatFr(current.fr)}"`);
@@ -218,14 +252,22 @@ export default function Module1Game() {
       }
 
       if (hintType === "translation") {
-        const { ok: pinOK, accentWarning, missingTones, corrected } =
-          isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
-        if (!pinOK) {
-          correct = false;
-          if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
-          messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
-        } else if (accentWarning) {
-          messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+        if (pinyinMode === "choice") {
+          const pinOK = selectedPinyinId != null && acceptedIds.has(selectedPinyinId);
+          if (!pinOK) {
+            correct = false;
+            messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+          }
+        } else {
+          const { ok: pinOK, accentWarning, missingTones, corrected } =
+            isPinyinAnswerCorrect(inputPinyin.trim(), current.pinyin);
+          if (!pinOK) {
+            correct = false;
+            if (missingTones) messages.push("Le pinyin doit inclure les tons (accents ou chiffres).");
+            messages.push(`Pinyin attendu : "${current.pinyin}" (toléré en numérique : "${current.numeric}")`);
+          } else if (accentWarning) {
+            messages.push(`✔ Pinyin correct (numérique). Forme accentuée : "${corrected}".`);
+          }
         }
         const isAccepted = selectedId != null && acceptedIds.has(selectedId);
         if (!isAccepted) {
@@ -449,23 +491,55 @@ export default function Module1Game() {
         >
           <Text style={{ fontSize: tx(14), color: colors.muted }}>Traduction (FR)</Text>
           <FauxTextarea value={questionDone ? formatFr(current.fr) : ""} disabled={questionDone} placeholder="—" />
-          <TextInput
-            value={inputFR}
-            onChangeText={setInputFR}
-            style={{
-              borderWidth: 1,
-              borderColor: colors.border,
-              borderRadius: 12,
-              paddingHorizontal: 12,
-              paddingVertical: 10,
-              fontSize: tx(16),
-              color: colors.text,
-              backgroundColor: colors.background,
-            }}
-            placeholder="ex: bien"
-            placeholderTextColor={colors.muted}
-            editable={!questionDone}
-          />
+          {frMode === "input" ? (
+            <TextInput
+              value={inputFR}
+              onChangeText={setInputFR}
+              style={{
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                fontSize: tx(16),
+                color: colors.text,
+                backgroundColor: colors.background,
+              }}
+              placeholder="ex: bien"
+              placeholderTextColor={colors.muted}
+              editable={!questionDone}
+            />
+          ) : (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+              {choices.map((w) => {
+                const selected = selectedFrId === w.id && !questionDone;
+                const isSolution = questionDone && w.id === current.id;
+                const baseStyle = {
+                  width: "48%" as const,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  paddingVertical: 8,
+                  paddingHorizontal: 6,
+                  backgroundColor: colors.background,
+                };
+                let borderColor = colors.border;
+                if (selected) borderColor = colors.text;
+                if (isSolution) borderColor = colors.accent;
+                return (
+                  <Pressable
+                    key={w.id}
+                    onPress={() => !questionDone && setSelectedFrId(w.id)}
+                    disabled={questionDone}
+                    style={[baseStyle, { borderColor }]}
+                  >
+                    <Text style={{ fontSize: tx(16), color: colors.text, textAlign: "center" }}>
+                      {formatFr(w.fr)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </View>
       )}
 
@@ -483,29 +557,66 @@ export default function Module1Game() {
             gap: 6,
           }}
         >
-          <Text style={{ fontSize: tx(14), color: colors.muted }}>
-            Pinyin (accents obligatoires; numérique toléré)
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <Text style={{ fontSize: tx(14), color: colors.muted }}>
+              Pinyin (accents obligatoires; numérique toléré)
+            </Text>
+            <Pressable onPress={() => setShowToneInfo(true)}>
+              <Ionicons name="information-circle-outline" size={tx(18)} color={colors.muted} />
+            </Pressable>
+          </View>
           <FauxTextarea value={questionDone ? current.pinyin : ""} disabled={questionDone} placeholder="—" />
-          <TextInput
-            value={inputPinyin}
-            onChangeText={setInputPinyin}
-            autoCapitalize="none"
-            autoCorrect={false}
-            style={{
-              borderWidth: 1,
-              borderColor: colors.border,
-              borderRadius: 12,
-              paddingHorizontal: 12,
-              paddingVertical: 10,
-              fontSize: tx(16),
-              color: colors.text,
-              backgroundColor: colors.background,
-            }}
-            placeholder="ex: nǐ hǎo ou ni3 hao3"
-            placeholderTextColor={colors.muted}
-            editable={!questionDone}
-          />
+          {pinyinMode === "input" ? (
+            <TextInput
+              value={inputPinyin}
+              onChangeText={setInputPinyin}
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={{
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                fontSize: tx(16),
+                color: colors.text,
+                backgroundColor: colors.background,
+              }}
+              placeholder="ex: nǐ hǎo ou ni3 hao3"
+              placeholderTextColor={colors.muted}
+              editable={!questionDone}
+            />
+          ) : (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+              {choices.map((w) => {
+                const selected = selectedPinyinId === w.id && !questionDone;
+                const isSolution = questionDone && acceptedIds.has(w.id);
+                const baseStyle = {
+                  width: "48%" as const,
+                  borderRadius: 12,
+                  borderWidth: 2,
+                  paddingVertical: 8,
+                  paddingHorizontal: 6,
+                  backgroundColor: colors.background,
+                };
+                let borderColor = colors.border;
+                if (selected) borderColor = colors.text;
+                if (isSolution) borderColor = colors.accent;
+                return (
+                  <Pressable
+                    key={w.id}
+                    onPress={() => !questionDone && setSelectedPinyinId(w.id)}
+                    disabled={questionDone}
+                    style={[baseStyle, { borderColor }]}
+                  >
+                    <Text style={{ fontSize: tx(16), color: colors.text, textAlign: "center" }}>
+                      {w.pinyin}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </View>
       )}
 
@@ -573,6 +684,49 @@ export default function Module1Game() {
 
       <View style={{ height: 40 }} />
     </ScrollView>
+    {showToneInfo && (
+      <Pressable
+        onPress={() => setShowToneInfo(false)}
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 20,
+        }}
+      >
+        <Pressable
+          onPress={(e) => e.stopPropagation()}
+          style={{
+            backgroundColor: colors.card,
+            borderRadius: 16,
+            padding: 20,
+            borderWidth: 1,
+            borderColor: colors.border,
+            width: "80%",
+            gap: 12,
+          }}
+        >
+          <Pressable
+            onPress={() => setShowToneInfo(false)}
+            style={{ position: "absolute", top: 8, right: 8 }}
+          >
+            <Text style={{ fontSize: tx(18), color: colors.text }}>✕</Text>
+          </Pressable>
+          <Text style={{ fontSize: tx(16), fontWeight: "600", color: colors.text }}>
+            Accents numériques
+          </Text>
+          <Text style={{ fontSize: tx(14), color: colors.text }}>
+            Les chiffres 1 à 4 après la syllabe indiquent le ton correspondant. Exemple :
+            ni3 → nǐ. L’absence de chiffre ou 5 correspond au ton neutre.
+          </Text>
+        </Pressable>
+      </Pressable>
+    )}
 
     {showResult && (
       <Pressable

@@ -28,6 +28,10 @@ export default function Module1Settings() {
   type ElementType = "hanzi" | "pinyin" | "translation";
   const [answerType, setAnswerType] = useState<ElementType>("translation");
 
+  // Answer modes for pinyin & translation
+  const [pinyinMode, setPinyinMode] = useState<"input" | "choice">("input");
+  const [frMode, setFrMode] = useState<"input" | "choice">("input");
+
   // Whenever answerType or mode changes, ensure corresponding question type is disabled
   useEffect(() => {
     if (!singleAnswer) {
@@ -106,6 +110,8 @@ export default function Module1Settings() {
       noRepeatHintType: noRepeatHintType ? "1" : "0",
       types: types.join(","),
     };
+    params.pinyinMode = pinyinMode;
+    params.frMode = frMode;
     if (singleAnswer) params.answer = answerType;
     router.push({ pathname: "/module/1", params });
   }
@@ -397,6 +403,44 @@ export default function Module1Settings() {
             ? "Par défaut : tous les indices sauf l’élément de réponse choisi."
             : "Par défaut : tous les types d’indice sont autorisés."}
         </Text>
+      </View>
+
+      {/* Modes de réponse */}
+      <View
+        style={{
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: 12,
+          gap: 12,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+      >
+        <Text style={{ fontSize: tx(16), fontWeight: "600", color: colors.text }}>
+          Mode de réponse
+        </Text>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+        >
+          <Text style={{ fontSize: tx(15), color: colors.text }}>
+            Traduction FR : choix multiple
+          </Text>
+          <Switch
+            value={frMode === "choice"}
+            onValueChange={(v) => setFrMode(v ? "choice" : "input")}
+          />
+        </View>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+        >
+          <Text style={{ fontSize: tx(15), color: colors.text }}>
+            Pinyin : choix multiple
+          </Text>
+          <Switch
+            value={pinyinMode === "choice"}
+            onValueChange={(v) => setPinyinMode(v ? "choice" : "input")}
+          />
+        </View>
       </View>
 
       {/* CTA */}
