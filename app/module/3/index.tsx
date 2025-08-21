@@ -31,8 +31,10 @@ export default function Module3Game() {
   const [completed, setCompleted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
+  const [wrongWords, setWrongWords] = useState<Word[]>([]);
   const questionLost = useRef(false);
   const quizRef = useRef<HanziWriterQuizHandle>(null);
+  const originalWordsRef = useRef<Word[]>([]);
 
   useEffect(() => {
     loadWordsLocalOnly()
@@ -47,7 +49,14 @@ export default function Module3Game() {
         }
         const max = params.maxQuestions ? Math.min(filtered.length, Number(params.maxQuestions)) : filtered.length;
         const list = shuffle(filtered).slice(0, max);
+        originalWordsRef.current = list;
         setWords(list);
+        setIndex(0);
+        setScore(0);
+        setFinished(false);
+        setCompleted(false);
+        setWrongWords([]);
+        questionLost.current = false;
       })
       .catch(() => Alert.alert("Erreur", "Impossible de charger les mots."));
   }, [params.series, params.maxQuestions]);
@@ -89,6 +98,9 @@ export default function Module3Game() {
   }
 
   function next() {
+    if (questionLost.current && current) {
+      setWrongWords((arr) => [...arr, current]);
+    }
     if (index + 1 >= words.length) {
       setFinished(true);
     } else {
@@ -96,6 +108,27 @@ export default function Module3Game() {
       setCompleted(false);
       questionLost.current = false;
     }
+  }
+
+  function restartGame() {
+    setScore(0);
+    setIndex(0);
+    setWords(shuffle(originalWordsRef.current));
+    setFinished(false);
+    setCompleted(false);
+    questionLost.current = false;
+    setWrongWords([]);
+  }
+
+  function replayErrorsOnly() {
+    if (wrongWords.length === 0) return;
+    setScore(0);
+    setIndex(0);
+    setWords(shuffle(wrongWords));
+    setFinished(false);
+    setCompleted(false);
+    questionLost.current = false;
+    setWrongWords([]);
   }
 
   if (!current && !finished) {
@@ -107,23 +140,64 @@ export default function Module3Game() {
   }
 
   if (finished) {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background, padding: 20 }}>
-        <Text
+    if (scoreMode) {
+      const message = score / words.length >= 0.8 ? "Bravo !" : "La prochaine fois ce sera mieux…";
+      return (
+        <View
           style={{
-            fontSize: tx(20),
-            fontWeight: "700",
-            color: colors.text,
-            textAlign: "center",
-            marginBottom: 20,
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "flex-start",
+            backgroundColor: colors.background,
+            padding: 20,
+            gap: 12,
           }}
         >
+          <Text style={{ fontSize: tx(24), fontWeight: "700", color: colors.text }}>
+            Score final : {score}/{words.length}
+          </Text>
+          <Text style={{ fontSize: tx(18), color: colors.text }}>{message}</Text>
+          <View style={{ alignSelf: "stretch", gap: 12 }}>
+            {wrongWords.length > 0 && (
+              <ZenButton
+                title="Voir mes erreurs"
+                onPress={() =>
+                  router.push({
+                    pathname: "/module/3/errors",
+                    params: { list: JSON.stringify(wrongWords) },
+                  })
+                }
+              />
+            )}
+            <ZenButton title="Rejouer" onPress={restartGame} />
+            {wrongWords.length > 0 && (
+              <ZenButton title="Rejouer mes erreurs" onPress={replayErrorsOnly} />
+            )}
+            <ZenButton title="Menu principal" onPress={() => router.push("/")} />
+            <ZenButton title="Nouvelle partie" onPress={() => router.push("/module/3/settings")} />
+          </View>
+        </View>
+      );
+    }
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "flex-start",
+          backgroundColor: colors.background,
+          padding: 20,
+          gap: 12,
+        }}
+      >
+        <Text style={{ fontSize: tx(20), fontWeight: "700", color: colors.text }}>
           Partie terminée !
         </Text>
-        {scoreMode && (
-          <Text style={{ fontSize: tx(16), color: colors.text, marginBottom: 20 }}>{`Score : ${score}/${words.length}`}</Text>
-        )}
-        <ZenButton title="Retour aux paramètres" onPress={() => router.replace("/module/3/settings")} />
+        <View style={{ alignSelf: "stretch", gap: 12 }}>
+          <ZenButton title="Rejouer" onPress={restartGame} />
+          <ZenButton title="Nouvelle partie" onPress={() => router.push("/module/3/settings")} />
+          <ZenButton title="Menu principal" onPress={() => router.push("/")} />
+        </View>
       </View>
     );
   }
