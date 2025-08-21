@@ -78,6 +78,8 @@ export default function Module3Game() {
 
   function showSolution() {
     quizRef.current?.showSolution();
+    questionLost.current = true;
+    setCompleted(true);
   }
 
   function restart() {
