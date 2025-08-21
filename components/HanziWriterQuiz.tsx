@@ -35,6 +35,8 @@ export const HanziWriterQuiz = forwardRef<HanziWriterQuizHandle, Props>(
       showGrid = "book",
       showOutline = true,
       showHintAfterMisses = 3,
+      delayBetweenStrokes = 100,
+      strokeAnimationSpeed= 0.7,
       maxMistakes,
       onComplete,
       onFail,
@@ -145,6 +147,8 @@ export const HanziWriterQuiz = forwardRef<HanziWriterQuizHandle, Props>(
             showCharacter: false,
             showOutline: ${showOutline},
             showHintAfterMisses: ${showHintAfterMisses},
+            delayBetweenStrokes: ${delayBetweenStrokes},
+            strokeAnimationSpeed: ${strokeAnimationSpeed},
             highlightOnComplete: false,
             padding: 0
           });
