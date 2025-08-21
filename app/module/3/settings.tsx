@@ -18,6 +18,8 @@ export default function Module3Settings() {
   const [showHintAfterMisses, setShowHintAfterMisses] = useState(3);
   const [scoreMode, setScoreMode] = useState(false);
   const [maxHints, setMaxHints] = useState(3);
+  const [showPinyin, setShowPinyin] = useState(true);
+  const [showTranslation, setShowTranslation] = useState(true);
 
   useEffect(() => {
     loadWordsLocalOnly()
@@ -65,7 +67,9 @@ export default function Module3Settings() {
       showOutline: showOutline ? "1" : "0",
       showHintAfterMisses: String(showHintAfterMisses),
       scoreMode: scoreMode ? "1" : "0",
-      maxHints: String(maxHints)
+      maxHints: String(maxHints),
+      showPinyin: showPinyin ? "1" : "0",
+      showTranslation: showTranslation ? "1" : "0",
     };
     router.push({ pathname: "/module/3", params });
   }
@@ -104,8 +108,59 @@ export default function Module3Settings() {
       </View>
 
       <View style={{ backgroundColor: colors.card, borderRadius:12, padding:12, gap:8, borderWidth:1, borderColor: colors.border }}>
+        <Text style={{ fontSize: tx(16), fontWeight: "600", color: colors.text }}>Affichage des infos</Text>
+        <Pressable onPress={() => setShowPinyin(p => !p)} style={{ flexDirection:"row", alignItems:"center", gap:10, paddingVertical:6 }}>
+          <View style={{ width:20, height:20, borderRadius:4, borderWidth:2, borderColor: colors.border, backgroundColor: showPinyin ? colors.accent : "transparent" }} />
+          <Text style={{ fontSize: tx(15), color: colors.text }}>Afficher le pinyin</Text>
+        </Pressable>
+        <Pressable onPress={() => setShowTranslation(t => !t)} style={{ flexDirection:"row", alignItems:"center", gap:10, paddingVertical:6 }}>
+          <View style={{ width:20, height:20, borderRadius:4, borderWidth:2, borderColor: colors.border, backgroundColor: showTranslation ? colors.accent : "transparent" }} />
+          <Text style={{ fontSize: tx(15), color: colors.text }}>Afficher la traduction</Text>
+        </Pressable>
+      </View>
+
+      <View style={{ backgroundColor: colors.card, borderRadius:12, padding:12, gap:8, borderWidth:1, borderColor: colors.border }}>
+        <Text style={{ fontSize: tx(16), fontWeight: "600", color: colors.text }}>Mode</Text>
+        <View style={{ flexDirection:"row", gap:10 }}>
+          {[
+            { label: "Pédagogique", value: false },
+            { label: "Score", value: true },
+          ].map(opt => {
+            const selected = scoreMode === opt.value;
+            return (
+              <Pressable
+                key={opt.label}
+                onPress={() => {
+                  setScoreMode(opt.value);
+                  if (opt.value) setShowOutline(false); else setShowOutline(true);
+                }}
+                style={{ flexDirection:"row", alignItems:"center", gap:10, paddingVertical:6 }}
+              >
+                <View style={{ width:20, height:20, borderRadius:4, borderWidth:2, borderColor: colors.border, backgroundColor: selected ? colors.accent : "transparent" }} />
+                <Text style={{ fontSize: tx(15), color: colors.text }}>{opt.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {scoreMode && (
+          <View style={{ gap:4 }}>
+            <Text style={{ fontSize: tx(15), color: colors.text }}>Indices max avant échec</Text>
+            <TextInput
+              keyboardType="numeric"
+              value={maxHints.toString()}
+              onChangeText={t => setMaxHints(t ? Number(t) : 0)}
+              style={{ backgroundColor: colors.background, paddingHorizontal:12, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor: colors.border, color: colors.text }}
+            />
+          </View>
+        )}
+      </View>
+
+      <View style={{ backgroundColor: colors.card, borderRadius:12, padding:12, gap:8, borderWidth:1, borderColor: colors.border }}>
         <Text style={{ fontSize: tx(16), fontWeight: "600", color: colors.text }}>Options Hanzi Writer</Text>
-        <Pressable onPress={() => setShowOutline(o => !o)} style={{ flexDirection:"row", alignItems:"center", gap:10, paddingVertical:6 }}>
+        <Pressable
+          onPress={() => !scoreMode && setShowOutline(o => !o)}
+          style={{ flexDirection:"row", alignItems:"center", gap:10, paddingVertical:6, opacity: scoreMode ? 0.5 : 1 }}
+        >
           <View style={{ width:20, height:20, borderRadius:4, borderWidth:2, borderColor: colors.border, backgroundColor: showOutline ? colors.accent : "transparent" }} />
           <Text style={{ fontSize: tx(15), color: colors.text }}>Afficher le caractère</Text>
         </Pressable>
@@ -118,24 +173,6 @@ export default function Module3Settings() {
             style={{ backgroundColor: colors.background, paddingHorizontal:12, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor: colors.border, color: colors.text }}
           />
         </View>
-      </View>
-
-      <View style={{ backgroundColor: colors.card, borderRadius:12, padding:12, gap:8, borderWidth:1, borderColor: colors.border }}>
-        <Pressable onPress={() => setScoreMode(m => !m)} style={{ flexDirection:"row", alignItems:"center", gap:10, paddingVertical:6 }}>
-          <View style={{ width:20, height:20, borderRadius:4, borderWidth:2, borderColor: colors.border, backgroundColor: scoreMode ? colors.accent : "transparent" }} />
-          <Text style={{ fontSize: tx(15), color: colors.text }}>Mode score</Text>
-        </Pressable>
-        {scoreMode && (
-          <View style={{ gap:4 }}>
-            <Text style={{ fontSize: tx(15), color: colors.text }}>Indices max avant échec</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={maxHints.toString()}
-              onChangeText={t => setMaxHints(t ? Number(t) : 0)}
-              style={{ backgroundColor: colors.background, paddingHorizontal:12, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor: colors.border, color: colors.text }}
-            />
-          </View>
-        )}
       </View>
 
       <ZenButton title="Démarrer la partie" onPress={startGame} />

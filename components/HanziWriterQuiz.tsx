@@ -1,6 +1,16 @@
-import React, { useMemo } from "react";
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import { useWindowDimensions } from "react-native";
 import { WebView } from "react-native-webview";
+
+export interface HanziWriterQuizHandle {
+  showSolution: () => void;
+  restart: () => void;
+}
 
 interface Props {
   char: string;
@@ -16,18 +26,36 @@ interface Props {
   onFail?: () => void;
 }
 
-export function HanziWriterQuiz({
-  char,
-  // défauts “agréables” à l’usage
-  zoom = 2.7,
-  showGrid = "book",
-  showOutline = true,
-  showHintAfterMisses = 3,
-  maxMistakes,
-  onComplete,
-  onFail,
-}: Props) {
-  const { width } = useWindowDimensions();
+export const HanziWriterQuiz = forwardRef<HanziWriterQuizHandle, Props>(
+  (
+    {
+      char,
+      // défauts “agréables” à l’usage
+      zoom = 2.7,
+      showGrid = "book",
+      showOutline = true,
+      showHintAfterMisses = 3,
+      maxMistakes,
+      onComplete,
+      onFail,
+    }: Props,
+    ref
+  ) => {
+    const { width } = useWindowDimensions();
+    const webRef = useRef<WebView>(null);
+
+    useImperativeHandle(ref, () => ({
+      showSolution() {
+        webRef.current?.injectJavaScript(
+          "window.showSolution && window.showSolution(); true;"
+        );
+      },
+      restart() {
+        webRef.current?.injectJavaScript(
+          "window.restartQuiz && window.restartQuiz(); true;"
+        );
+      },
+    }));
 
   // Taille visible (responsive = mise en page adaptative)
   const displaySize = Math.min(width * 0.9, 350);
@@ -60,8 +88,8 @@ export function HanziWriterQuiz({
     return "";
   }, [showGrid, internalSize]);
 
-  const html = useMemo(
-    () => `
+    const html = useMemo(
+      () => `
     <!DOCTYPE html>
     <html>
       <head>
@@ -121,39 +149,53 @@ export function HanziWriterQuiz({
             padding: 0
           });
 
-          writer.quiz({
-            onMistake: function() {
-              misses++;
-              if (MAX_MISTAKES && misses >= MAX_MISTAKES) {
-                window.ReactNativeWebView.postMessage('fail');
+          function startQuiz() {
+            misses = 0;
+            writer.hideCharacter();
+            writer.quiz({
+              onMistake: function() {
+                misses++;
+                if (MAX_MISTAKES && misses >= MAX_MISTAKES) {
+                  window.ReactNativeWebView.postMessage('fail');
+                }
+              },
+              onComplete: function() {
+                window.ReactNativeWebView.postMessage('complete');
               }
-            },
-            onComplete: function() {
-              window.ReactNativeWebView.postMessage('complete');
-            }
-          });
+            });
+          }
+
+          startQuiz();
+          window.restartQuiz = startQuiz;
+          window.showSolution = function() {
+            writer.animateCharacter();
+          };
         </script>
       </body>
     </html>
   `,
-    [char, internalSize, gridSvg, showOutline, showHintAfterMisses, maxMistakes]
-  );
+      [char, internalSize, gridSvg, showOutline, showHintAfterMisses, maxMistakes]
+    );
 
-  return (
-    <WebView
-      originWhitelist={["*"]}
-      source={{ html }}
-      onMessage={(e) => {
-        if (e.nativeEvent.data === "complete") onComplete?.();
-        else if (e.nativeEvent.data === "fail") onFail?.();
-      }}
-      scrollEnabled={false}
-      style={{
-        backgroundColor: "transparent",
-        width: displaySize,
-        height: displaySize,
-        alignSelf: "center",
-      }}
-    />
-  );
-}
+    return (
+      <WebView
+        ref={webRef}
+        originWhitelist={["*"]}
+        source={{ html }}
+        onMessage={(e) => {
+          if (e.nativeEvent.data === "complete") onComplete?.();
+          else if (e.nativeEvent.data === "fail") onFail?.();
+        }}
+        scrollEnabled={false}
+        style={{
+          backgroundColor: "transparent",
+          width: displaySize,
+          height: displaySize,
+          alignSelf: "center",
+        }}
+      />
+    );
+  }
+);
+
+HanziWriterQuiz.displayName = "HanziWriterQuiz";
