@@ -1,4 +1,9 @@
-import React, { useMemo } from "react";
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import { useWindowDimensions } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -16,18 +21,27 @@ interface Props {
   onFail?: () => void;
 }
 
-export function HanziWriterQuiz({
-  char,
-  // défauts “agréables” à l’usage
-  zoom = 2.7,
-  showGrid = "book",
-  showOutline = true,
-  showHintAfterMisses = 3,
-  maxMistakes,
-  onComplete,
-  onFail,
-}: Props) {
+export interface HanziWriterQuizHandle {
+  showSolution: () => void;
+  restart: () => void;
+}
+
+function HanziWriterQuizInner(
+  {
+    char,
+    // défauts “agréables” à l’usage
+    zoom = 2.7,
+    showGrid = "book",
+    showOutline = true,
+    showHintAfterMisses = 3,
+    maxMistakes,
+    onComplete,
+    onFail,
+  }: Props,
+  ref: React.Ref<HanziWriterQuizHandle>,
+) {
   const { width } = useWindowDimensions();
+  const webRef = useRef<WebView>(null);
 
   // Taille visible (responsive = mise en page adaptative)
   const displaySize = Math.min(width * 0.9, 350);
@@ -126,18 +140,43 @@ export function HanziWriterQuiz({
             padding: 0
           });
 
-          writer.quiz({
-            onMistake: function() {
-              misses++;
-              if (MAX_MISTAKES && misses >= MAX_MISTAKES) {
-                window.ReactNativeWebView.postMessage('fail');
+          function startQuiz() {
+            misses = 0;
+            writer.quiz({
+              onMistake: function() {
+                misses++;
+                if (MAX_MISTAKES && misses >= MAX_MISTAKES) {
+                  window.ReactNativeWebView.postMessage('fail');
+                }
+              },
+              onComplete: function() {
+                window.ReactNativeWebView.postMessage('complete');
               }
-            },
-            onComplete: function() {
-              window.ReactNativeWebView.postMessage('complete');
+            });
+          }
+
+          startQuiz();
+
+          document.addEventListener('message', function(e) {
+            if (e.data === 'solution') {
+              writer.updateOptions({
+                delayBetweenStrokes: ${delayBetweenStrokes} / 2,
+                strokeAnimationSpeed: ${strokeAnimationSpeed} * 2,
+              });
+              writer.animateCharacter({
+                onComplete: function() {
+                  writer.updateOptions({
+                    delayBetweenStrokes: ${delayBetweenStrokes},
+                    strokeAnimationSpeed: ${strokeAnimationSpeed},
+                  });
+                }
+              });
+            } else if (e.data === 'restart') {
+              writer.hideCharacter();
+              startQuiz();
             }
           });
-        </script>
+          <\/script>
       </body>
     </html>
   `,
@@ -153,8 +192,18 @@ export function HanziWriterQuiz({
     ]
   );
 
+  useImperativeHandle(ref, () => ({
+    showSolution() {
+      webRef.current?.postMessage("solution");
+    },
+    restart() {
+      webRef.current?.postMessage("restart");
+    },
+  }));
+
   return (
     <WebView
+      ref={webRef}
       originWhitelist={["*"]}
       source={{ html }}
       onMessage={(e) => {
@@ -171,3 +220,7 @@ export function HanziWriterQuiz({
     />
   );
 }
+
+export const HanziWriterQuiz = forwardRef(HanziWriterQuizInner);
+HanziWriterQuiz.displayName = "HanziWriterQuiz";
+

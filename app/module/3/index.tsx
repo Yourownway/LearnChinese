@@ -1,7 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Text, View } from "react-native";
-import { HanziWriterQuiz } from "../../../components/HanziWriterQuiz";
+import {
+  HanziWriterQuiz,
+  type HanziWriterQuizHandle,
+} from "../../../components/HanziWriterQuiz";
 import { ZenButton } from "../../../components/ZenButton";
 import { useTheme } from "../../../hooks/useTheme";
 import { loadWordsLocalOnly, type Word } from "../../../lib/data";
@@ -26,7 +29,9 @@ export default function Module3Game() {
   const [completed, setCompleted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState(0);
+  const [success, setSuccess] = useState<boolean | null>(null);
   const questionLost = useRef(false);
+  const quizRef = useRef<HanziWriterQuizHandle>(null);
 
   useEffect(() => {
     loadWordsLocalOnly()
@@ -59,21 +64,41 @@ export default function Module3Game() {
     }
     questionLost.current = false;
     setCompleted(true);
+    setSuccess(true);
   }
 
   function handleFail() {
     if (scoreMode) {
       questionLost.current = true;
       setCompleted(true);
+      setSuccess(false);
     }
   }
 
+  function showSolution() {
+    if (!completed) {
+      questionLost.current = true;
+      setCompleted(true);
+      setSuccess(false);
+    }
+    quizRef.current?.showSolution();
+  }
+
+  function restart() {
+    questionLost.current = false;
+    setCompleted(false);
+    setSuccess(null);
+    quizRef.current?.restart();
+  }
+
   function next() {
+    if (!completed) return;
     if (index + 1 >= words.length) {
       setFinished(true);
     } else {
       setIndex((i) => i + 1);
       setCompleted(false);
+      setSuccess(null);
       questionLost.current = false;
     }
   }
@@ -147,6 +172,7 @@ export default function Module3Game() {
       </Text>
       <View style={{ flex: 1 }}>
         <HanziWriterQuiz
+          ref={quizRef}
           char={current.hanzi}
           showOutline={showOutline}
           showHintAfterMisses={showHintAfterMisses}
@@ -162,11 +188,29 @@ export default function Module3Game() {
           <Text style={{ color: colors.text, fontSize: tx(14), textAlign: "center" }}>{current.frDetails}</Text>
         )}
       </View>
-      {completed && (
-        <View style={{ marginTop: 12 }}>
-          <ZenButton title={index + 1 >= words.length ? "Terminer" : "Question suivante"} onPress={next} />
+      <View style={{ marginTop: 12 }}>
+        {completed && (
+          <Text
+            style={{
+              color: colors.text,
+              fontSize: tx(16),
+              textAlign: "center",
+              marginBottom: 8,
+            }}
+          >
+            {success ? "Bravo !" : "Dommage"}
+          </Text>
+        )}
+        <View style={{ flexDirection: "row", gap: 8, justifyContent: "center" }}>
+          <ZenButton title="Solution" onPress={showSolution} />
+          <ZenButton title="Recommencer" onPress={restart} />
+          <ZenButton
+            title={index + 1 >= words.length ? "Terminer" : "Question suivante"}
+            onPress={next}
+            disabled={!completed}
+          />
         </View>
-      )}
+      </View>
     </View>
   );
 }
