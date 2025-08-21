@@ -17,6 +17,8 @@ type Params = {
   showHintAfterMisses?: string;
   scoreMode?: string;
   maxHints?: string;
+  showPinyin?: string;
+  showTranslation?: string;
 };
 
 export default function Module3Game() {
@@ -57,6 +59,10 @@ export default function Module3Game() {
   const showHintAfterMisses = params.showHintAfterMisses ? Number(params.showHintAfterMisses) : 3;
   const scoreMode = params.scoreMode === "1";
   const maxHints = params.maxHints ? Number(params.maxHints) : 3;
+  const showPinyin = params.showPinyin !== "0";
+  const showTranslation = params.showTranslation !== "0";
+  const displayPinyin = showPinyin || !showTranslation;
+  const displayTranslation = showTranslation || !showPinyin;
 
   function handleComplete() {
     if (scoreMode && !questionLost.current) {
@@ -182,9 +188,13 @@ export default function Module3Game() {
         />
       </View>
       <View style={{ marginTop: 12 }}>
-        <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>{current.pinyin}</Text>
-        <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>{current.fr}</Text>
-        {current.frDetails && (
+        {displayPinyin && (
+          <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>{current.pinyin}</Text>
+        )}
+        {displayTranslation && (
+          <Text style={{ color: colors.text, fontSize: tx(16), textAlign: "center" }}>{current.fr}</Text>
+        )}
+        {displayTranslation && current.frDetails && (
           <Text style={{ color: colors.text, fontSize: tx(14), textAlign: "center" }}>{current.frDetails}</Text>
         )}
       </View>
@@ -203,7 +213,7 @@ export default function Module3Game() {
         )}
         <View style={{ flexDirection: "row", gap: 8, justifyContent: "center" }}>
           <ZenButton title="Solution" onPress={showSolution} />
-          <ZenButton title="Recommencer" onPress={restart} />
+          {!scoreMode && <ZenButton title="Recommencer" onPress={restart} />}
           <ZenButton
             title={index + 1 >= words.length ? "Terminer" : "Question suivante"}
             onPress={next}
