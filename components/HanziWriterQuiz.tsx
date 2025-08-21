@@ -168,7 +168,13 @@ export const HanziWriterQuiz = forwardRef<HanziWriterQuizHandle, Props>(
           startQuiz();
           window.restartQuiz = startQuiz;
           window.showSolution = function() {
+            var prevSpeed = writer._options.strokeAnimationSpeed;
+            var prevDelay = writer._options.delayBetweenStrokes;
+            writer._options.strokeAnimationSpeed = prevSpeed * 2;
+            writer._options.delayBetweenStrokes = prevDelay / 2;
             writer.animateCharacter();
+            writer._options.strokeAnimationSpeed = prevSpeed;
+            writer._options.delayBetweenStrokes = prevDelay;
           };
         </script>
       </body>
