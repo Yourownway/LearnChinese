@@ -72,8 +72,8 @@ export default function HomeScreen() {
         <Text style={[styles.title, { color: colors.text, fontSize: tx(20) }]}>
           Réviser le chinois
         </Text>
-        <Text style={[styles.subtitle, { color: colors.muted, fontSize: tx(13) }]}>
-          Minimaliste & Zen
+        <Text style={[styles.subtitle, { color: colors.muted, fontSize: tx(13) }]}> 
+          Apprentissage moderne et motivant
         </Text>
       </View>
 
@@ -82,10 +82,30 @@ export default function HomeScreen() {
 
       {/* Actions */}
       <View style={styles.actions}>
-        <ZenButton title="Cours" onPress={go("/module/4")} />
-        <ZenButton title="Dictionnaire" onPress={go("/module/2", "Bravo !")} />
-        <ZenButton title="Exercices" onPress={go("/module/1/settings", "Dommage…")} />
-        <ZenButton title="Écriture" onPress={go("/module/3/settings")} />
+        <ZenButton
+          title="Cours"
+          icon="school-outline"
+          onPress={go("/module/4")}
+          style={styles.actionBtn}
+        />
+        <ZenButton
+          title="Dictionnaire"
+          icon="book-outline"
+          onPress={go("/module/2", "Bravo !")}
+          style={styles.actionBtn}
+        />
+        <ZenButton
+          title="Exercices"
+          icon="game-controller-outline"
+          onPress={go("/module/1/settings", "Dommage…")}
+          style={styles.actionBtn}
+        />
+        <ZenButton
+          title="Écriture"
+          icon="pencil-outline"
+          onPress={go("/module/3/settings")}
+          style={styles.actionBtn}
+        />
       </View>
 
       {/* Footer */}
@@ -139,7 +159,8 @@ const styles = StyleSheet.create({
   logoText: { fontWeight: "900" },
   title: { fontWeight: "800" },
   subtitle: {},
-  actions: { gap: 12, marginTop: 8 },
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginTop: 8 },
+  actionBtn: { flexBasis: "48%" },
   footer: {
     marginTop: "auto",
     paddingTop: 12,

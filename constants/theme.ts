@@ -4,20 +4,20 @@ export type UIMode = "light" | "dark";
 
 export const THEME_COLORS = {
   light: {
-    background: "#FDFBF7", // crème
-    text: "#111111",
-    muted: "#5A5A5A",
+    background: "#F5F7FA",
+    text: "#1F2937",
+    muted: "#6B7280",
     card: "#FFFFFF",
-    border: "rgba(0,0,0,.06)",
-    accent: "#1AA890", // jade
+    border: "#E5E7EB",
+    accent: "#3B82F6",
   },
   dark: {
-    background: "#000000", // noir
-    text: "#FFFFFF",
-    muted: "#D0D0D0",
-    card: "#111111",
-    border: "rgba(255,255,255,.12)",
-    accent: "#FFFFFF", // pas de couleur en sombre
+    background: "#1F2937",
+    text: "#F9FAFB",
+    muted: "#D1D5DB",
+    card: "#374151",
+    border: "#4B5563",
+    accent: "#60A5FA",
   },
 } as const;
 
