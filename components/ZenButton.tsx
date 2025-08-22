@@ -47,6 +47,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  title: { fontWeight: "700" },
-  chevron: { fontWeight: "800" },
+  title: { fontWeight: "700", fontFamily: "Rubik" },
+  chevron: { fontWeight: "800", fontFamily: "Rubik" },
 });

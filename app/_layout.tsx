@@ -2,6 +2,8 @@ import { Stack } from "expo-router";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { ToastProvider } from "../components/Toast";
 import { ThemeProvider, useTheme } from "../hooks/useTheme";
+import { useFonts } from "expo-font";
+import { Text } from "react-native";
 
 function Navigator() {
 	const { colors } = useTheme();
@@ -34,11 +36,27 @@ function Navigator() {
 }
 
 export default function RootLayout() {
-	return (
-		<ThemeProvider>
-			<ToastProvider>
-				<Navigator />
-			</ToastProvider>
-		</ThemeProvider>
-	);
+        const [fontsLoaded] = useFonts({
+                Roboto: require("../assets/fonts/Roboto-Regular.ttf"),
+                Rubik: require("../assets/fonts/Rubik-Regular.ttf"),
+                NotoSerifSC: require("../assets/fonts/NotoSerifSC-Regular.ttf"),
+        });
+
+        if (!fontsLoaded) {
+                return null;
+        }
+
+        Text.defaultProps = Text.defaultProps || {};
+        Text.defaultProps.style = {
+                ...(Text.defaultProps.style as object),
+                fontFamily: "Roboto",
+        };
+
+        return (
+                <ThemeProvider>
+                        <ToastProvider>
+                                <Navigator />
+                        </ToastProvider>
+                </ThemeProvider>
+        );
 }

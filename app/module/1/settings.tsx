@@ -307,7 +307,9 @@ export default function Module1Settings() {
                 backgroundColor: answerType === "hanzi" ? colors.accent : "transparent",
               }}
             />
-            <Text style={{ fontSize: tx(15), color: colors.text }}>汉字 sinogramme</Text>
+            <Text style={{ fontSize: tx(15), color: colors.text, fontFamily: "Rubik" }}>
+              <Text style={{ fontFamily: "NotoSerifSC" }}>汉字</Text> sinogramme
+            </Text>
           </Pressable>
           <Text style={{ fontSize: tx(12), color: colors.muted }}>
             L’élément choisi ne pourra pas être utilisé comme indice.
@@ -350,7 +352,9 @@ export default function Module1Settings() {
               backgroundColor: allowHanzi ? colors.accent : "transparent",
             }}
           />
-          <Text style={{ fontSize: tx(15), color: colors.text }}>汉字 sinogramme</Text>
+          <Text style={{ fontSize: tx(15), color: colors.text, fontFamily: "Rubik" }}>
+            <Text style={{ fontFamily: "NotoSerifSC" }}>汉字</Text> sinogramme
+          </Text>
         </Pressable>
         <Pressable
           onPress={() => setAllowPinyin((v) => !v)}
