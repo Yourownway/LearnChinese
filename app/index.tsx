@@ -67,7 +67,11 @@ export default function HomeScreen() {
             },
           ]}
         >
-          <Text style={[styles.logoText, { color: colors.text, fontSize: tx(36) }]}>汉</Text>
+          <Text
+            style={[styles.logoText, { color: colors.text, fontSize: tx(36), fontFamily: "NotoSerifSC" }]}
+          >
+            汉
+          </Text>
         </Animated.View>
         <Text style={[styles.title, { color: colors.text, fontSize: tx(20) }]}>
           Réviser le chinois
@@ -95,7 +99,7 @@ export default function HomeScreen() {
           style={styles.footerBtn}
           accessibilityLabel="Basculer mode clair/sombre"
         >
-          <Text style={{ color: colors.text, fontSize: tx(14) }}>
+          <Text style={{ color: colors.text, fontSize: tx(14), fontFamily: "Rubik" }}>
             {mode === "dark" ? "Mode clair" : "Mode sombre"}
           </Text>
         </Pressable>
@@ -105,14 +109,14 @@ export default function HomeScreen() {
             style={styles.footerBtn}
             accessibilityLabel="Réduire la taille du texte"
           >
-            <Text style={{ color: colors.text, fontSize: tx(14) }}>A−</Text>
+            <Text style={{ color: colors.text, fontSize: tx(14), fontFamily: "Rubik" }}>A−</Text>
           </Pressable>
           <Pressable
             onPress={increaseScale}
             style={styles.footerBtn}
             accessibilityLabel="Augmenter la taille du texte"
           >
-            <Text style={{ color: colors.text, fontSize: tx(14) }}>A+</Text>
+            <Text style={{ color: colors.text, fontSize: tx(14), fontFamily: "Rubik" }}>A+</Text>
           </Pressable>
         </View>
       </View>

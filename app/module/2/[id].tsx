@@ -64,7 +64,14 @@ export default function WordDetail() {
           gap: 12,
         }}
       >
-        <Text style={{ fontSize: tx(64), color: colors.text, fontWeight: "700" }}>
+        <Text
+          style={{
+            fontSize: tx(64),
+            color: colors.text,
+            fontWeight: "700",
+            fontFamily: "NotoSerifSC",
+          }}
+        >
           {word.hanzi}
         </Text>
         <StrokeFan char={word.hanzi} />
@@ -84,7 +91,9 @@ export default function WordDetail() {
           },
           audioDisabled && { opacity: 0.4 }]}
         >
-          <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
+          <Text style={{ color: colors.text, fontWeight: "600", fontFamily: "Rubik" }}>
+            🔊 Écouter
+          </Text>
         </Pressable>
       </View>
     </View>

@@ -125,7 +125,7 @@ export default function Module2Dictionary() {
           onPress={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
           style={{ padding: 6 }}
         >
-          <Text style={{ color: colors.text, fontSize: tx(14) }}>
+          <Text style={{ color: colors.text, fontSize: tx(14), fontFamily: "Rubik" }}>
             Tri {sortOrder === "asc" ? "A→Z" : "Z→A"}
           </Text>
         </Pressable>
@@ -150,6 +150,7 @@ export default function Module2Dictionary() {
                   style={{
                     color: active ? "#fff" : colors.text,
                     fontSize: tx(14),
+                    fontFamily: opt === "hanzi" ? "NotoSerifSC" : "Rubik",
                   }}
                 >
                   {opt === "hanzi" ? "汉字" : opt === "fr" ? "FR" : "PY"}
@@ -178,7 +179,15 @@ export default function Module2Dictionary() {
                 borderColor: colors.border,
               }}
             >
-              <Text style={{ color: active ? "#fff" : colors.text, fontSize: tx(14) }}>{n}</Text>
+              <Text
+                style={{
+                  color: active ? "#fff" : colors.text,
+                  fontSize: tx(14),
+                  fontFamily: "Rubik",
+                }}
+              >
+                {n}
+              </Text>
             </Pressable>
           );
         })}
@@ -197,7 +206,13 @@ export default function Module2Dictionary() {
             borderColor: colors.border,
           }}
         >
-          <Text style={{ color: selectedSeries === "all" ? "#fff" : colors.text, fontSize: tx(14) }}>
+          <Text
+            style={{
+              color: selectedSeries === "all" ? "#fff" : colors.text,
+              fontSize: tx(14),
+              fontFamily: "Rubik",
+            }}
+          >
             Toutes
           </Text>
         </Pressable>
@@ -217,7 +232,15 @@ export default function Module2Dictionary() {
                 borderColor: colors.border,
               }}
             >
-              <Text style={{ color: active ? "#fff" : colors.text, fontSize: tx(14) }}>S{s}</Text>
+              <Text
+                style={{
+                  color: active ? "#fff" : colors.text,
+                  fontSize: tx(14),
+                  fontFamily: "Rubik",
+                }}
+              >
+                S{s}
+              </Text>
             </Pressable>
           );
         })}
@@ -246,13 +269,32 @@ export default function Module2Dictionary() {
             gap: 4 * scale,
           }}
         >
-          <Text style={{ fontSize: tx(24 * scale), color: colors.text, fontWeight: "700" }}>
+          <Text
+            style={{
+              fontSize: tx(24 * scale),
+              color: colors.text,
+              fontWeight: "700",
+              fontFamily: order[0] === "hanzi" ? "NotoSerifSC" : "Roboto",
+            }}
+          >
             {item[order[0]] as string}
           </Text>
-          <Text style={{ fontSize: tx(14 * scale), color: colors.text }}>
+          <Text
+            style={{
+              fontSize: tx(14 * scale),
+              color: colors.text,
+              fontFamily: order[1] === "hanzi" ? "NotoSerifSC" : "Roboto",
+            }}
+          >
             {item[order[1]] as string}
           </Text>
-          <Text style={{ fontSize: tx(14 * scale), color: colors.text }}>
+          <Text
+            style={{
+              fontSize: tx(14 * scale),
+              color: colors.text,
+              fontFamily: order[2] === "hanzi" ? "NotoSerifSC" : "Roboto",
+            }}
+          >
             {item[order[2]] as string}
           </Text>
         </View>

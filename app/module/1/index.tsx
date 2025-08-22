@@ -429,9 +429,15 @@ export default function Module1Game() {
             borderRadius: 999,
             borderWidth: 1,
             borderColor: colors.border,
+            fontFamily: "Roboto",
           }}
         >
-          Indice : {hintLabel}
+          Indice :
+          {hintLabel === "汉字" ? (
+            <Text style={{ fontFamily: "NotoSerifSC" }}> 汉字</Text>
+          ) : (
+            <Text> {hintLabel}</Text>
+          )}
         </Text>
         <Text
           style={{
@@ -472,7 +478,9 @@ export default function Module1Game() {
               audioDisabled && { opacity: 0.4 },
             ]}
           >
-            <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
+            <Text style={{ color: colors.text, fontWeight: "600", fontFamily: "Rubik" }}>
+              🔊 Écouter
+            </Text>
           </Pressable>
         )}
 
@@ -788,7 +796,9 @@ export default function Module1Game() {
                 audioDisabled && { opacity: 0.4 },
               ]}
             >
-              <Text style={{ color: colors.text, fontWeight: "600" }}>🔊 Écouter</Text>
+              <Text style={{ color: colors.text, fontWeight: "600", fontFamily: "Rubik" }}>
+                🔊 Écouter
+              </Text>
             </Pressable>
             <ZenButton title={nextButtonTitle} onPress={goNext} />
           </View>

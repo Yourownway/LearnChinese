@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 6,
   },
-  hanzi: { fontWeight: "800", textAlign: "center" },
+  hanzi: { fontWeight: "800", textAlign: "center", fontFamily: "NotoSerifSC" },
   pinyin: { textAlign: "center" },
   fr: { textAlign: "center" },
 });
