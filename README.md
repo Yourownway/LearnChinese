@@ -102,3 +102,12 @@ AsyncStorage used for cache & history
 LRU logic in separate utility (lib/lruCache.ts)
 
 Data & audio loading in lib/data.ts and lib/audio.ts
+## Example: generate Chinese speech with Piper
+
+1. Start a Piper HTTP server with a Mandarin voice on port 5002.
+2. Run the helper script:
+   ```bash
+   node scripts/piper-example.js "你好，世界"
+   ```
+3. The audio will be saved to `piper-output.wav` in the project root.
+
